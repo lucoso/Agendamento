@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Context>
+	<Resource name="jdbc/agendaBD" auth="Container"
+		factory="org.apache.naming.factory.BeanFactory" type="com.mchange.v2.c3p0.ComboPooledDataSource"
+		driverClass="org.postgresql.Driver" jdbcUrl="jdbc:postgresql://localhost:5432/AgendamentoBD"
+		user="postgres" password="Lmaw27supernatural" minPoolSize="5" maxPoolSize="200" maxIdleTime="500"
+		maxIdleTimeExcessConnections="250" initialPoolSize="5" privilegeSpawnedThreads="true" 
+		contextClassLoaderSource="library" />
+</Context>

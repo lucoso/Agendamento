@@ -1,0 +1,476 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+	
+	<f:metadata>
+		<f:viewAction action="#{ativaBean.Buscar}"></f:viewAction>
+		<f:viewAction action="#{homeBean.BuscarUsuario}"></f:viewAction>
+		<f:viewAction action="#{homeBean.Inicializar}"></f:viewAction>
+		<f:viewAction action="#{homeBean.BuscarAvisosImportantes}"></f:viewAction>
+		<f:viewAction action="#{homeBean.BuscarAvisos}"></f:viewAction>
+	</f:metadata>	
+		
+		<h1 class="aw-page-title">HomePage</h1>
+		
+		<h:form id="home-frm">
+		
+			<p:messages autoUpdate="true" closable="true"/>	
+			
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+					
+					 <p:menuButton  value="Novo Cliente">
+ 					 	<p:menuitem value="Fisico" icon="fa fa-fw fa-user-plus" 
+            				 action="#{homeBean.ClienteFisicoEmEdicao}" update="clientef-dialog"
+            				 process="@this" oncomplete="PF('clientef-Dialog').show()">
+            				 <p:resetInput target="clientef-dialog"/>
+            		    </p:menuitem>
+            		    <p:menuitem value="Juridico" icon="fa fa-fw fa-file-text" action="#{homeBean.ClienteJuridicoEmEdicao}" 
+            		    			update="clientej-dialog" process="@this" oncomplete="PF('clientej-Dialog').show()">
+            		    	<p:resetInput target="clientej-dialog"/>
+            		    </p:menuitem>
+            		  </p:menuButton>  
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+			
+					<p:commandButton value="Novo Agendamento" action="#{homeBean.AgendamentoEmEdicao}"
+						process="@this" icon="ui-icon-calendar" update="agenda-dialog"
+						oncomplete="PF('agenda-Dialog').show()"  >
+						<p:resetInput target="agenda-dialog" />
+					</p:commandButton>
+				</p:toolbarGroup>	
+					
+				<p:toolbarGroup align="right">	
+					
+					<p:commandButton value="Novo Aviso" action="#{homeBean.AvisoEmEdicao}"
+						process="@this" icon="fa fa-fw fa-bell" update="aviso-dialog"
+						oncomplete="PF('aviso-Dialog').show()"  >
+						<p:resetInput target="aviso-dialog" />
+					</p:commandButton>
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton id="botao-aviso" value="Avisos #{ativaBean.qntdAvisos}" process="@this" />
+    				<p:overlayPanel id="avisoPanel" for="botao-aviso" hideEffect="fade" dynamic="true" style="width:600px">
+       					<p:dataTable id="table-avisos" value="#{homeBean.avisos}" var="aviso" reflow="true"
+										emptyMessage="Nenhum Aviso Cadastrado Para Hoje." style="margin-top: 10px"
+										rows="5" paginator="true" paginatorPosition="bottom" >
+				
+						<f:facet name="header">
+							Avisos do Dia
+						</f:facet>
+				
+						<p:column headerText="Aviso" style="text-align:center" >
+							<h:outputText value="#{aviso.msg}"/>
+						</p:column>
+				
+						<p:column headerText="Finalizado" style="text-align:center">
+							<h:outputText value="Sim" rendered="#{aviso.finalizado == true}"/>
+							<h:outputText value="Não" rendered="#{aviso.finalizado == false}"/>
+						</p:column>
+				
+						<p:column headerText="Finalizar" style="text-align:center" >
+							<p:commandButton id="botao-finalizar" title="Finalizar Aviso" icon="fa fa-fw fa-check-circle" action="#{homeBean.Finalizar}" process="@this"
+												update="table-avisos botao-finalizar" disabled="#{aviso.finalizado == true}">
+								<f:setPropertyActionListener value="#{aviso}" target="#{homeBean.avisoParaFinalizar}"/>
+							</p:commandButton>					
+						</p:column>
+
+						</p:dataTable>
+    				</p:overlayPanel>
+						
+				</p:toolbarGroup>
+			</p:toolbar>
+				
+			<br/>
+			
+			<div class="ui-fluid">
+			<p:panel header="Filtros para o Calendario" id="panel-filtros" toggleable="true" collapsed="true" >
+ 			<p:panelGrid id="painel-filtros" columns="2" layout="grid" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-2, ui-grid-col-4" >
+ 				<p:defaultCommand target="botao-filtrar" scope="panel-filtros" />
+				<p:outputLabel/>
+				
+				<p:outputLabel for="nomefuncionario" value="Nome do Funcionario que Criou o Agendamento: " />
+            	<p:autoComplete id="nomefuncionario" value="#{homeBean.funcionarioparafiltro}" var="func" itemLabel="#{func.nome}" 
+            			itemValue="#{func}" forceSelection="true" converter="funcionarioConverter" completeMethod="#{homeBean.CompletarNomeFuncionario}" />	
+			
+				<p:outputLabel for="nomecliente" value="Nome do Cliente: " />
+            	<p:autoComplete id="nomecliente" value="#{homeBean.clienteparafiltro}" var="cliente" itemLabel="#{cliente.nome}" 
+            			itemValue="#{cliente}" forceSelection="true" converter="clienteConverter" completeMethod="#{homeBean.CompletarNomeCliente}" />		
+            
+ 				<p:outputLabel for="status" value="Status do Agendamento: " />
+            	<p:selectOneMenu id="status" value="#{homeBean.status}" >
+            			<f:selectItem itemLabel="Escolha a Status" itemValue="" noSelectionOption="true" />
+            			<f:selectItem itemLabel="Agendado" itemValue="Agendado" />
+            			<f:selectItem itemLabel="Concluido" itemValue="Finalizado" />
+            			<f:selectItem itemLabel="Cancelado" itemValue="Cancelado" />
+            	</p:selectOneMenu>
+            	
+            	<p:commandButton value="Limpar" action="#{homeBean.Limpar}" process="@this" update="panel-filtros" />
+            	<p:commandButton id="botao-filtrar" value="Filtrar" action="#{homeBean.FiltrarEmEdicao}" process="panel-filtros" />	
+ 			</p:panelGrid>
+ 		</p:panel>
+ 		</div>		
+			
+			<br/><br/>
+			
+				<p:schedule id="schedule" widgetVar="myschedule" value="#{homeBean.eventModel}" locale="pt" axisFormat="H:mm" timeFormat="H:mm" >
+		
+						<p:ajax event="eventSelect" listener="#{homeBean.EventoSelecionado}" update="paineldetalhe-dialog"
+							oncomplete="PF('MostraragendaDialog').show()">
+							<p:resetInput target="paineldetalhe-dialog" />
+						</p:ajax>		
+						<p:ajax event="dateSelect" listener="#{homeBean.NovoAgendamentoClicado}" update="painel-dialog msg-ag"
+							oncomplete="PF('agenda-Dialog').show()"/>					
+				</p:schedule>
+			
+			
+		<!-- Dialogs da Pagina -->	
+			<!-- Dialog novo cliente -->
+	
+	<p:dialog widgetVar="clientef-Dialog" id="clientef-dialog" header="Novo Cliente Fisico"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				<p:messages autoUpdate="true"/>
+				<p:wizard>
+				<p:tab title="Dados Pessoais">
+				
+				<h:panelGroup id="clientefPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+			
+						<p:outputLabel for="nome" value="Nome Completo: " />
+            			<p:inputText id="nome" value="#{homeBean.clientefisico.nome}"/>
+            			
+            			<p:outputLabel for="datanasc" value="Data de Nascimento: " />
+            			<p:calendar id="datanasc" value="#{homeBean.clientefisico.datanasc}" pattern="dd/MM/yyyy" 
+										mask="true" locale="pt" />
+            			
+            			<p:outputLabel for="cpf" value="CPF: " />
+            			<p:inputMask id="cpf" value="#{homeBean.clientefisico.cpf}" mask="999.999.999-99" />
+
+            			<p:outputLabel for="email" value="E-mail:" />
+            			<p:inputText id="email" value="#{homeBean.clientefisico.email}"/>
+            			
+            			<p:outputLabel for="tel" value="Telefone Fixo: " />
+            			<p:inputMask id="tel" value="#{homeBean.clientefisico.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="cel" value="Celular: " />
+            			<p:inputMask id="cel" value="#{homeBean.clientefisico.cel}" mask="(99) 99999-9999" />
+						
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				</p:tab>
+				
+				<p:tab title="Endereço">
+					<h:panelGroup id="endfPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarClientef" scope="clientef-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="rua" value="Rua: " />
+						<p:inputText id="rua" value="#{homeBean.endereco.rua}" />	
+						
+						<p:outputLabel for="numero" value="Número: " />
+						<p:inputText id="numero" value="#{homeBean.endereco.numero}" />
+						
+						<p:outputLabel for="complemento" value="Complemento: " />
+						<p:inputText id="complemento" value="#{homeBean.endereco.complemento}" />
+						
+						<p:outputLabel for="bairro" value="Bairro: " />
+						<p:inputText id="bairro" value="#{homeBean.endereco.bairro}" />
+						
+						<p:outputLabel for="cep" value="CEP: " />
+						<p:inputMask id="cep" value="#{homeBean.endereco.cep}" mask="99999-999" />
+						
+						<p:outputLabel for="cidade" value="Cidade: " />
+						<p:inputText id="cidade" value="#{homeBean.endereco.cidade}" />
+						
+						<p:outputLabel for="uf" value="UF: " />
+            			<p:selectOneMenu id="uf" value="#{homeBean.endereco.uf}">
+            				<f:selectItem itemLabel="Escolha a UF" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{homeBean.ufs}" />	
+            			</p:selectOneMenu>
+            			
+            			<p:outputLabel for="pais" value="País: " />
+            			<p:selectOneMenu id="pais" value="#{homeBean.endereco.pais}" editable="true">
+            				<f:selectItem itemLabel="Escolha o País" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{homeBean.paises}" />	
+            			</p:selectOneMenu>
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarClientef" value="Cadastrar" actionListener="#{homeBean.CadastrarClienteFisico}" 
+										process="clientef-dialog" update="clientef-dialog" oncomplete="if (!args.validationFailed) PF('clientef-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:tab>
+			</p:wizard>	
+			</p:dialog>
+			
+			<!-- Dialog novo cliente juridico -->
+	
+	<p:dialog widgetVar="clientej-Dialog" id="clientej-dialog" header="Novo Cliente Juridico"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				<p:messages autoUpdate="true"/>
+				<p:wizard>
+				<p:tab title="Dados Pessoais">
+				
+				<h:panelGroup id="clientejPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+			
+						<p:outputLabel for="nomej" value="Nome da Empresa: " />
+            			<p:inputText id="nomej" value="#{homeBean.clientejuridico.nome}"/>
+            				
+            			<p:outputLabel for="cnpj" value="CNPJ: " />
+            			<p:inputMask id="cnpj" value="#{homeBean.clientejuridico.cnpj}" mask="99.999.999/9999-99" />
+            			
+            			<p:outputLabel for="emailj" value="E-mail:" />
+            			<p:inputText id="emailj" value="#{homeBean.clientejuridico.email}"/>
+            			
+            			<p:outputLabel for="telj" value="Telefone Fixo: " />
+            			<p:inputMask id="telj" value="#{homeBean.clientejuridico.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="celj" value="Celular: " />
+            			<p:inputMask id="celj" value="#{homeBean.clientejuridico.cel}" mask="(99) 99999-9999" />
+						
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				</p:tab>
+				
+				<p:tab title="Endereço">
+					<h:panelGroup id="endjPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarClientej" scope="clientej-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="ruaj" value="Rua: " />
+						<p:inputText id="ruaj" value="#{homeBean.endereco.rua}" />	
+						
+						<p:outputLabel for="numeroj" value="Número: " />
+						<p:inputText id="numeroj" value="#{homeBean.endereco.numero}" />
+						
+						<p:outputLabel for="complementoj" value="Complemento: " />
+						<p:inputText id="complementoj" value="#{homeBean.endereco.complemento}" />
+						
+						<p:outputLabel for="bairroj" value="Bairro: " />
+						<p:inputText id="bairroj" value="#{homeBean.endereco.bairro}" />
+						
+						<p:outputLabel for="cepj" value="CEP: " />
+						<p:inputMask id="cepj" value="#{homeBean.endereco.cep}" mask="99999-999" />
+						
+						<p:outputLabel for="cidadej" value="Cidade: " />
+						<p:inputText id="cidadej" value="#{homeBean.endereco.cidade}" />
+						
+						<p:outputLabel for="ufj" value="UF: " />
+            			<p:selectOneMenu id="ufj" value="#{homeBean.endereco.uf}">
+            				<f:selectItem itemLabel="Escolha a UF" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{homeBean.ufs}" />	
+            			</p:selectOneMenu>
+            			
+            			<p:outputLabel for="paisj" value="País: " />
+            			<p:selectOneMenu id="paisj" value="#{homeBean.endereco.pais}" editable="true">
+            				<f:selectItem itemLabel="Escolha o País" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{homeBean.paises}" />	
+            			</p:selectOneMenu>
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarClientej" value="Cadastrar" actionListener="#{homeBean.CadastrarClienteJuridico}" 
+										process="clientej-dialog" update="clientej-dialog" oncomplete="if (!args.validationFailed) PF('clientej-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:tab>
+			</p:wizard>	
+			</p:dialog>
+			
+			<!-- Dialog novo agendamento -->
+			
+				<p:dialog widgetVar="agenda-Dialog" id="agenda-dialog" header="Novo Agendamento"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="agendaPanel" layout="block" styleClass="ui-fluid">
+				<p:messages id="msg-ag"/>
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-dialog"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+						<p:defaultCommand target="botao-salvarAgendamento" scope="agenda-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="tipoclienteag" value="Tipo De Cliente: " />
+						<p:selectOneRadio id="tipoclienteag" value="#{homeBean.tipocliente}" required="true" requiredMessage="Escolha o tipo de Cliente">
+							<f:selectItem itemLabel="Fisico" itemValue="Fisico" />
+							<f:selectItem itemLabel="Juridico" itemValue="Juridico" />
+							<p:ajax update="clientefisico clientejuridico"  />
+						</p:selectOneRadio>	
+			
+						<p:outputLabel for="clientefisico" value="Cliente Fisico: " />
+            			<p:autoComplete id="clientefisico" value="#{homeBean.clienteFisicoAg}" var="tipo" itemLabel="#{tipo.nome}" 
+            							itemValue="#{tipo}" forceSelection="true" converter="clienteConverter" required="true" requiredMessage="É necessário escolher o Cliente Fisico"
+            							completeMethod="#{homeBean.CompletarNomeClienteFisico}" disabled="#{homeBean.tipocliente != 'Fisico'}" >
+            			</p:autoComplete>
+            			
+            			<p:outputLabel for="clientejuridico" value="Cliente Juridico: " />
+            			<p:autoComplete id="clientejuridico" value="#{homeBean.clienteJuridicoAg}" var="tipo" itemLabel="#{tipo.nome}" 
+            							itemValue="#{tipo}" forceSelection="true" converter="clienteConverter" required="true" requiredMessage="É necessário escolher o Cliente Juridico"
+            							completeMethod="#{homeBean.CompletarNomeClienteJuridico}" disabled="#{homeBean.tipocliente != 'Juridico'}" >
+            			</p:autoComplete>	
+            			
+            			<p:outputLabel for="motivo" value="Motivo:" />
+           				<p:inputText id="motivo" value="#{homeBean.agenda.motivo}" />	
+ 
+            			<p:outputLabel for="data" value="Data:" />
+            			<p:calendar id="data" value="#{homeBean.agenda.dataAgendada}"  pattern="dd/MM/yyyy HH:mm" locale="pt" />			
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarAgendamento" value="Agendar" actionListener="#{homeBean.Agendar}" 
+										process="agenda-dialog" update="agendaPanel msg-ag schedule" oncomplete="if (!args.validationFailed) PF('agenda-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+				
+			</p:dialog>
+			
+			
+			  <!-- Dialog Mostrar Dados do agendameto -->
+      
+      <p:dialog  widgetVar="MostraragendaDialog" header="Detalhes Agendamento" modal="true" responsive="true" id="detalheagdialog">
+      
+      <h:panelGroup id="agendadetPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid id="paineldetalhe-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-8, ui-grid-col-12">
+        			
+        			<p:outputLabel/>
+        			<div align="center">
+        				<h:outputText value="Status: " style="font-weight:bold;font-size:15px" />
+            		 	<h:outputText value="Agendado" rendered="#{homeBean.agenda.finalizado == false and homeBean.agenda.cancelado == false}" style="color:blue;font-size:15px" styleClass="outputLabel"/>
+            		 	<h:outputText value="Concluido" rendered="#{homeBean.agenda.finalizado == true and homeBean.agenda.cancelado == false}" style="color:green;font-size:15px" styleClass="outputLabel"/>
+            		 	<h:outputText value="Cancelado" rendered="#{homeBean.agenda.finalizado == false and homeBean.agenda.cancelado == true}" style="color:red;font-size:15px" styleClass="outputLabel"/>
+        			</div>	
+        			<p:outputLabel/>
+        			
+        			 <h:outputText value="Motivo Cancelado: " rendered="#{homeBean.agenda.finalizado == false and homeBean.agenda.cancelado == true}"   />
+            		 <h:outputText value="#{homeBean.agenda.motivoCancelado}" styleClass="outputLabel" 
+            		 					rendered="#{homeBean.agenda.finalizado == false and homeBean.agenda.cancelado == true}"  />
+            		 					
+           			 <h:outputText value="Motivo:" />
+            		 <h:outputText value="#{homeBean.agenda.motivo}" styleClass="outputLabel"/>
+            		  
+            		 <h:outputText value="Cliente: " />
+            		 <h:outputText  value="#{homeBean.agenda.cliente.nome}" styleClass="outputLabel"/>							
+            		 
+            		 <h:outputText value="Data:" />
+            		 <h:outputText value="#{homeBean.agenda.dataAgendada}" styleClass="outputLabel">
+            		 	<f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+            		 </h:outputText>
+            		 
+            		 <h:outputText value="Relatorio: " rendered="#{not empty homeBean.agenda.resumo}"   />
+            		 <h:outputText value="#{homeBean.agenda.resumo}" styleClass="outputLabel" rendered="#{not empty homeBean.agenda.resumo}"/>	
+            		 
+            		 </p:panelGrid>
+            		 
+            		<p:panelGrid id="painelbotoes-dialog" columns="3" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-4, ui-grid-col-4">
+            		 				
+            		 <p:commandButton id="botao-excluir" value="Cancelar Agendamento" oncomplete="PF('cancelar-Dialog').show()" process="@this" 
+            		 					disabled="#{homeBean.statusAgendamento != 'Agendado'}" />
+            					
+            		 <p:commandButton id="botao-reagendar" value="Reagendar" process="@this" oncomplete="PF('reagendar-Dialog').show()"
+            		 						disabled="#{homeBean.statusAgendamento != 'Agendado'}"/>
+            		 
+            		 <p:commandButton id="botao-concluir" value="Concluir Agendamento" process="@this" action="#{homeBean.ConcluirAgendamento}" 
+            		 					disabled="#{homeBean.statusAgendamento != 'Agendado'}" />														
+			
+            </p:panelGrid>
+            </h:panelGroup>
+            </p:dialog>		
+            
+             <p:dialog widgetVar="cancelar-Dialog" header="Cancelar" modal="true" id="cancelar-dialog" responsive="true">
+      			<p:panelGrid id="painelcancelar-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+      				 <p:defaultCommand target="botao-cancelarAgendamento" scope="cancelar-dialog" />
+					 <p:outputLabel/>
+			
+      				 <p:outputLabel for="motivocancelar" value="Motivo do Cancelamento: " />
+            		 <p:inputTextarea id="motivocancelar" value="#{homeBean.motivocancelado}" required="true" requiredMessage="Para Cancelar é Necessário especificar um Motivo" rows="4" cols="20"/>
+            		 
+            		  <p:outputLabel></p:outputLabel>				
+            		 <p:commandButton id="botao-cancelarAgendamento" value="Cancelar" actionListener="#{homeBean.CancelarAgendamento}"
+            					update="painelcancelar-dialog" process="cancelar-dialog" icon="fa fa-fw fa-times-circle" oncomplete="if (!args.validationFailed) PF('cancelar-Dialog').hide()">
+            			<p:confirm header="Confirmação" icon="ui-icon-alert" message="Tem Certeza Que Deseja Cancelar o Agendamento?"/>
+            		 </p:commandButton>			
+            						
+            	</p:panelGrid>	 
+            </p:dialog>
+            
+            <p:dialog widgetVar="reagendar-Dialog" header="Reagendar" responsive="true" modal="true" id="reagendar-dialog">
+      			<p:panelGrid id="painelreagendar-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-2, ui-grid-col-4">
+      				 <p:defaultCommand target="botao-reagendarAgendamento" scope="reagendar-dialog" />
+					 <p:outputLabel/>
+			
+      				 <p:outputLabel for="datareagendar" value="Nova Data: " />
+            		 <p:calendar id="datareagendar" value="#{homeBean.datareagendar}" mask="true" locale="pt" pattern="dd/MM/yyyy HH:mm" />
+            		 
+            		 <p:outputLabel></p:outputLabel>				
+            		 <p:commandButton id="botao-reagendarAgendamento" value="Reagendar" actionListener="#{homeBean.Reagendar}"
+            					update="painelreagendar-dialog" process="reagendar-dialog" />	
+            	</p:panelGrid>	 
+            </p:dialog>
+            
+            <!-- Dialog Aviso Importante -->
+            
+            <p:dialog widgetVar="avisoimportante-Dialog" header="Atenção! Você Tem Um Aviso Importante!" responsive="true" modal="true" id="avisoimportante-dialog">
+      			<p:panelGrid id="painelaviso-dialog" columns="1" layout="grid" styleClass="panelgrid-noborder">
+      				
+      				<p:messages id="avisoImportante" />
+            		 
+            	</p:panelGrid>	 
+            </p:dialog>
+            
+            <p:dialog widgetVar="aviso-Dialog" header="Novo Aviso" responsive="true" modal="true" id="aviso-dialog">
+      			<p:panelGrid id="painelcriaraviso-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-2, ui-grid-col-8">
+      				 <p:defaultCommand target="botao-criaraviso" scope="aviso-dialog" />
+					 <p:outputLabel/>
+			
+      				 <p:outputLabel for="avisodata" value="Data: " />
+            		 <p:calendar id="avisodata" value="#{homeBean.aviso.data}" mask="true" locale="pt" pattern="dd/MM/yyyy" />
+            		 
+            		 <p:outputLabel for="avisomotivo" value="Aviso: " />
+            		 <p:inputTextarea id="avisomotivo" value="#{homeBean.aviso.msg}" rows="4" cols="20"/>
+            		 
+            		 <p:outputLabel/>				
+            		 <p:commandButton id="botao-criaraviso" value="Criar Aviso" actionListener="#{homeBean.CriarAviso}"
+            					update="painelcriaraviso-dialog" process="aviso-dialog" oncomplete="if (!args.validationFailed) PF('aviso-Dialog').hide()" />	
+            	</p:panelGrid>	 
+            </p:dialog>
+			
+			<p:confirmDialog showEffect="fade" hideEffect="fade" id="confirm-dialog" global="true">
+				<p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+				<p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+			</p:confirmDialog>
+			
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

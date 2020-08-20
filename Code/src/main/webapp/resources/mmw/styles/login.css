@@ -1,0 +1,111 @@
+body {
+  background: #e9e9e9;
+  color: #666666;
+  font-family: 'RobotoDraft', 'Roboto', sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.index-title {
+  padding: 50px 0;
+  text-align: center;
+  letter-spacing: 2px;
+}
+.index-title h1 {
+  margin: 0 0 20px;
+  font-size: 48px;
+  font-weight: 300;
+  color: green;
+}
+
+.form-module {
+  position: relative;
+  background: #ffffff;
+  max-width: 320px;
+  width: 100%;
+  border-top: 5px solid #008000;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+.form-module .form {
+  padding: 40px;
+}
+.form-module .form:nth-child(2) {
+  display: block;
+}
+.form-module h2 {
+  margin: 0 0 20px;
+  color: #008000;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+.form-module input {
+  outline: none;
+  display: block;
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  margin: 0 0 20px;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  font-wieght: 400;
+  -webkit-transition: 0.3s ease;
+  transition: 0.3s ease;
+}
+.form-module input:focus {
+  border: 1px solid #33b5e5;
+  color: #333333;
+}
+.form-module button {
+  cursor: pointer;
+  background: #008000;
+  width: 100%;
+  border: 0;
+  padding: 10px 15px;
+  color: #ffffff;
+  -webkit-transition: 0.3s ease;
+  transition: 0.3s ease;
+}
+.form-module button:hover {
+  background: #008000;
+}
+
+.form-module .forgot {
+  background: #f2f2f2;
+  width: 100%;
+  padding: 15px 40px;
+  box-sizing: border-box;
+  color: #666666;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media screen and (max-width: 761px){
+	body{background-color: white; }
+	.index-title h1{font-size: 18px; }
+	.form-module{background-color: green; }
+	.form{background-color: white; }
+}
+
+@media screen and (max-width: 760px){
+	body{background-color: white; }
+	.index-title h1{font-size: 18px; }
+	.form-module{background-color: green; }
+	.form{background-color: white; }
+}
+
+@media screen and (max-width: 480px){
+	body{background-color: white; }
+	.index-title h1{font-size: 18px; }
+	.form-module{background-color: green; }
+	.form{background-color: white; }
+}
+
+@media screen and (max-width: 360px){
+	body{background-color: white; }
+	.index-title h1{font-size: 18px; }
+	.form-module{background-color: green; }
+	.form{background-color: white; }
+}

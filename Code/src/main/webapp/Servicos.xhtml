@@ -1,0 +1,673 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+		<f:metadata>
+			<f:viewAction action="#{servicoBean.BuscarUsuario}"></f:viewAction>
+			<f:viewAction action="#{servicoBean.BuscarTodos}"></f:viewAction>
+		</f:metadata>
+	
+		<h1 class="aw-page-title">Serviços</h1>
+		
+		<h:form id="servico-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+					<p:commandButton value="Novo Serviço" action="#{servicoBean.ServicoEmEdicao}"
+						process="@this" icon="ui-icon-plusthick" update="servico-dialog"
+						oncomplete="PF('servico-Dialog').show()"  >
+						<p:resetInput target="servico-dialog" />
+					</p:commandButton>
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+					
+					<p:menuButton value="Buscar">
+						<p:menuitem value="Por Cliente" icon="ui-icon-person" oncomplete="PF('buscaservicocl-Dialog').show()" process="@this"/>
+						<p:menuitem value="Por Status" icon="ui-icon-document-b" oncomplete="PF('buscaservicostatus-Dialog').show()" process="@this"/>
+						<p:menuitem value="Todos do Ultimo Mês" icon="ui-icon-folder-open" action="#{servicoBean.BuscarTodos}" process="@this" 
+										update="servicoCarousel"/>
+					</p:menuButton>
+				
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<br/>	
+	
+	<p:carousel value="#{servicoBean.servicos}" headerText="Serviços" var="servico" itemStyle="text-align:center" 
+					responsive="true" id="servicoCarousel">
+		<p:panelGrid columns="2" columnClasses="label,value" layout="grid" styleClass="ui-panelgrid-blank" 
+						style="width:100%;margin:10px 0px" >
+			<f:facet name="header">
+				<p:outputLabel value="#{servico.descricao}" />
+			</f:facet>
+			
+			<h:outputText value="Cliente" />
+			<h:outputText value="#{servico.cliente.nome}" />
+			
+			<h:outputText value="Data Da Abertura" />
+			<h:outputText value="#{servico.dataAbertura}" >
+				<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>
+			
+			<h:outputText value="Valor" />
+			<h:outputText value="#{servico.valor}" >
+				<f:convertNumber type="currency" currencySymbol="R$"/>
+			</h:outputText>	
+			
+			<h:outputText value="Status" />
+			<h:outputText value="#{servico.status}" />
+			
+			<f:facet name="footer">
+				<h:panelGrid columns="3" cellspacing="5">
+				<p:commandButton update=":servico-frm:detalheservico-dialog" process="@this" oncomplete="PF('detalheservico-Dialog').show()" value="Visualizar">
+					<f:setPropertyActionListener value="#{servico}" target="#{servicoBean.servicoSelecionado}" />
+				</p:commandButton>
+				
+				<p:commandButton update=":servico-frm:servicoatual-dialog" process="@this" oncomplete="PF('servicoatual-Dialog').show()" value="Atualizar">
+					<f:setPropertyActionListener value="#{servico}" target="#{servicoBean.servicoSelecionado}" />
+				</p:commandButton>
+    			
+    			<p:commandButton update=":servico-frm:relatorio-dialog :servico-frm:table-relatorios" process="@this" oncomplete="PF('relatorio-Dialog').show()" 
+    								value="Relatorios" action="#{servicoBean.BuscarRelatorios}">
+					<f:setPropertyActionListener value="#{servico}" target="#{servicoBean.servicoSelecionado}" />
+				</p:commandButton>
+				
+				<p:commandButton update=":servico-frm:pagamento-dialog" process="@this" oncomplete="PF('pagamento-Dialog').show()" 
+    								value="Pagamentos" action="#{servicoBean.BuscarPagamentos}">
+					<f:setPropertyActionListener value="#{servico}" target="#{servicoBean.servicoSelecionado}" />
+				</p:commandButton>
+				
+				<p:commandButton value="Finalizar Serviço" process="@this" oncomplete="PF('servicofinal-Dialog').show()" disabled="#{servico.finalizado != false}"
+						actionListener="#{servicoBean.LimparDadosFinalizados}" update=":servico-frm:servicofinal-dialog" >
+					<f:setPropertyActionListener value="#{servico}" target="#{servicoBean.servicoParaFinalizar}" />
+				</p:commandButton>
+				</h:panelGrid>	
+			</f:facet>
+		</p:panelGrid>
+	</p:carousel>
+	
+	<!-- Dialogs da Pagina -->
+	
+	<!-- Dialog Novo Servico -->
+	
+	<p:dialog id="servico-dialog" widgetVar="servico-Dialog" header="Novo Serviço" responsive="true" resizable="false" modal="true">
+        <h:panelGroup id="novoservicoPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-novoservico"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        			<p:defaultCommand target="botao-cadastrar" scope="servico-dialog" />
+					<p:outputLabel/>
+						
+        	<p:outputLabel for="cliente" value="Nome Do Cliente:" />
+            <p:autoComplete id="cliente" value="#{servicoBean.servico.cliente}" var="cliente" itemLabel="#{cliente.nome}" 
+            			itemValue="#{cliente}" forceSelection="true" converter="clienteConverter"
+            			completeMethod="#{servicoBean.CompletarNomeCliente}" />
+            
+            <p:outputLabel for="descricao" value="Descrição Do Serviço: "/>			
+            <p:inputTextarea id="descricao" rows="2" cols="13" value="#{servicoBean.servico.descricao}"/>
+            
+            <p:outputLabel for="relatorio" value="Relatório Do Serviço: "/>			
+            <p:inputTextarea id="relatorio" rows="4" cols="20" value="#{servicoBean.relatorio}"/>			
+
+            <p:outputLabel for="valor" value="Valor: " />
+            <p:inputText id="valor" value="#{servicoBean.servico.valor}" title="Caso seja necessário colocar centavos utilize o '.' (ponto) ao invés da ',' (virgula)">
+            	<f:converter converterId="javax.faces.BigDecimal" />
+            </p:inputText>	
+            
+            <p:outputLabel/>
+            <p:tooltip id="tooltipvalor" for="valor" showEvent="focus" hideEvent="blur" />
+            
+            <p:outputLabel for="status" value="Status: " />
+            <p:selectOneMenu id="status" value="#{servicoBean.servico.status}" effect="fold" editable="true">
+            	<f:selectItem itemLabel="Selecione" itemValue=""/>
+            	<f:selectItem itemLabel="Em Andamento" itemValue="Em Andamento"/>
+            	<f:selectItem itemLabel="Aguardando Retorno Do Cliente" itemValue="Aguardando Retorno Do Cliente"/>
+            	<f:selectItem itemLabel="Finalizado" itemValue="Finalizado"/>
+            </p:selectOneMenu>
+            
+            <p:outputLabel for="obs" value="Observações: "/>			
+            <p:inputTextarea id="obs" rows="2" cols="10" value="#{servicoBean.servico.obs}"/>	
+            
+            <p:outputLabel/>
+            <p:commandButton id="botao-cadastrar" value="Cadastrar" actionListener="#{servicoBean.CadastrarServico}" 
+            				 process="servico-dialog" update="painel-novoservico servicoCarousel" 
+            				 oncomplete="if (!args.validationFailed) PF('servico-Dialog').hide()"/>
+        </p:panelGrid>
+        </h:panelGroup>   				 
+    </p:dialog> 
+    
+    <!-- Dialog Atualizar Servico -->
+	
+	<p:dialog id="servicoatual-dialog" widgetVar="servicoatual-Dialog" header="Atualizar Serviço" responsive="true" resizable="false" modal="true">
+        <h:panelGroup id="servicoatualPanel" layout="block" styleClass="ui-fluid">
+					
+			<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-servicoatual"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        	<p:defaultCommand target="botao-atualizar" scope="servicoatual-dialog" />
+			<p:outputLabel/>
+						
+        	<p:outputLabel for="clienteatual" value="Nome Do Cliente:" />
+            <p:autoComplete id="clienteatual" value="#{servicoBean.servicoSelecionado.cliente}" var="cliente" itemLabel="#{cliente.nome}" 
+            			itemValue="#{cliente}" forceSelection="true" converter="clienteConverter"
+            			completeMethod="#{servicoBean.CompletarNomeCliente}" />
+			
+			<p:outputLabel for="descricaoatual" value="Descrição Do Serviço: "/>			
+            <p:inputTextarea id="descricaoatual" rows="2" cols="13" value="#{servicoBean.servicoSelecionado.descricao}"/>
+            
+            <p:outputLabel for="valoratual" value="Valor: " />
+            <p:inputText id="valoratual" value="#{servicoBean.servicoSelecionado.valor}" >
+            	<f:converter converterId="javax.faces.BigDecimal" />
+            </p:inputText>	
+            
+            <p:outputLabel for="statusatual" value="Status: " />
+            <p:selectOneMenu id="statusatual" value="#{servicoBean.servicoSelecionado.status}" effect="fold" editable="true">
+            	<f:selectItem itemLabel="Selecione" itemValue=""/>
+            	<f:selectItem itemLabel="Em Andamento" itemValue="Em Andamento"/>
+            	<f:selectItem itemLabel="Aguardando Retorno Do Cliente" itemValue="Aguardando Retorno Do Cliente"/>
+            	<f:selectItem itemLabel="Finalizado" itemValue="Finalizado"/>
+            </p:selectOneMenu>
+            
+            <p:outputLabel for="obsatual" value="Observações: "/>			
+            <p:inputTextarea id="obsatual" rows="3" cols="15" value="#{servicoBean.servicoSelecionado.obs}"/>	
+            
+            <p:outputLabel/>
+            <p:commandButton id="botao-atualizar" value="Atualizar" actionListener="#{servicoBean.AtualizarServico}" 
+            				 process="servicoatual-dialog" update="painel-servicoatual servicoCarousel" 
+            				 oncomplete="if (!args.validationFailed) PF('servicoatual-Dialog').hide()"/>
+        </p:panelGrid>
+        </h:panelGroup>   				 
+    </p:dialog> 
+	
+	 <!-- Detalhes do Servico -->
+     
+     <p:dialog id="detalheservico-dialog" widgetVar="detalheservico-Dialog" header="Detalhes Do Serviço" responsive="true" resizable="false" modal="true">
+        	<h:panelGroup id="detalhesPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-dialog"
+						columnClasses="ui-grid-col-6, ui-grid-col-6">
+        	
+        	<h:outputText value="Descrição:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.descricao}" />
+            
+            <h:outputText value="Cliente:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.cliente.nome}" />
+            
+            <h:outputText value="Data Da Abertura:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.dataAbertura}" >
+            	<f:convertDateTime pattern="dd/MM/yyyy"/>
+            </h:outputText>
+            
+            <h:outputText value="Valor:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.valor}" >
+            	<f:convertNumber type="currency" currencySymbol="R$"/>
+            </h:outputText>	
+            
+            <h:outputText value="Status:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.status}" />
+            
+            <h:outputText value="Data Finalizado:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.dataFinalizado}" >
+            	<f:convertDateTime pattern="dd/MM/yyyy"/>
+            </h:outputText>
+            
+            <h:outputText value="Observações:" />
+            <h:outputText value="#{servicoBean.servicoSelecionado.obs}" />
+            
+          </p:panelGrid>
+          </h:panelGroup>
+          </p:dialog>
+          
+    <!-- Agendamentos -->   
+	
+	<p:dialog id="agendamento-dialog" widgetVar="agendamento-Dialog" header="Agendamentos" styleClass="dialogAgendamentos"  responsive="true" resizable="false" modal="true">
+       				
+        <p:dataTable id="table-agendamentos" value="#{servicoBean.agendamentos}" var="agenda" style="margin-top: 10px"
+					 emptyMessage="Este Serviço Não Possui Nenhum Agendamento ate o Momento" rows="10" paginator="true" reflow="true" 
+					 paginatorPosition="bottom" >
+				
+			<f:facet name="header">
+				 Agendamentos do Serviço Referente ao Cliente: #{servicoBean.servicoSelecionado.cliente.nome} 
+			</f:facet>
+		
+		<p:column headerText="Motivo" style="text-align:center">
+			<h:outputText value="#{agenda.motivo}" />
+		</p:column>
+		
+		<p:column headerText="Data" style="text-align:center">
+             <h:outputText value="#{agenda.dataAgendada}" >
+             	<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>	
+		</p:column>	
+		
+		<p:column headerText="Status" style="text-align:center">
+			<h:outputText value="Agendado" rendered="#{agenda.finalizado == false and agenda.cancelado == false}" style="color:blue" styleClass="outputLabel"/>
+            <h:outputText value="Concluido" rendered="#{agenda.finalizado == true and agenda.cancelado == false}" style="color:green" styleClass="outputLabel"/>
+            <h:outputText value="Cancelado" rendered="#{agenda.finalizado == false and agenda.cancelado == true}" style="color:red" styleClass="outputLabel"/>	
+		</p:column>
+	
+	</p:dataTable>
+	
+    </p:dialog>        
+           
+    <!-- Relatorios -->   
+	
+	<p:dialog id="relatorio-dialog" widgetVar="relatorio-Dialog" header="Relatorios" styleClass="dialogRelatorios" responsive="true" resizable="false" modal="true">
+       				
+        <p:toolbar id="toolbar-relatorios">
+			<f:facet name="left">	
+			<p:commandButton id="botao-novoRelatorio" value="Criar Novo Relatorio" process="@this" action="#{servicoBean.LimparRelatorio}"
+								oncomplete="PF('novorelatorio-Dialog').show()" update="novorelatorio-dialog" />
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+			</span>
+			
+			<p:commandButton title="atualizar" icon="ui-icon-arrowrefresh-1-w" oncomplete="PF('relatorioatual-Dialog').show()" 
+								update="relatorioatual-dialog table-relatorios" disabled="#{servicoBean.relatorioSelecionado == null}" 
+								process="@this"/>
+			
+			<span class="ui-separator" />
+								
+			<p:commandButton title="excluir" icon="ui-icon-trash" disabled="#{servicoBean.relatorioSelecionado == null}"
+								actionListener="#{servicoBean.RemoverRelatorio}" update="table-relatorios" process="@this">
+				<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir?" icon="ui-icon-alert" />
+    		</p:commandButton>
+    		
+    		<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+			</span>
+			
+			<p:commandButton id="botao-agendamentos" value="Agendamentos do Serviço" process="@this" action="#{servicoBean.BuscarAgendamentos}"
+								oncomplete="PF('agendamento-Dialog').show()" update="agendamento-dialog" />
+		</f:facet>				
+	</p:toolbar>
+	
+        <p:panelGrid columns="1" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-12">
+        <p:dataTable id="table-relatorios" value="#{servicoBean.relatorios}" var="relatorio" style="margin-top: 10px"
+					 emptyMessage="Este Serviço Não Possui Nenhum Relatorio ate o Momento" rows="10" paginator="true" reflow="true" 
+					 paginatorPosition="bottom" selection="#{servicoBean.relatorioSelecionado}" selectionMode="single" 
+					 rowKey="#{relatorio.id}">
+					 
+			<p:ajax event="rowSelect" update=":servico-frm:toolbar-relatorios"/>
+			<p:ajax event="rowUnselect" update=":servico-frm:toolbar-relatorios"/>
+					 
+			<f:facet name="header">
+				 Relatorios do Serviço Referente ao Cliente: #{servicoBean.servicoSelecionado.cliente.nome} 
+			</f:facet>
+		
+		<p:column headerText="Data do Relatorio" style="text-align:center">
+             <h:outputText value="#{relatorio.data}" >
+             	<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>	
+		</p:column>	
+		
+		<p:column headerText="Relatorio" style="text-align:center">
+			<h:outputText value="#{relatorio.resumo}" />
+		</p:column>
+	
+	</p:dataTable>
+	</p:panelGrid>
+	
+    </p:dialog>  
+    
+    <!-- Criar Novo Relatorio -->
+      <p:dialog id="novorelatorio-dialog" widgetVar="novorelatorio-Dialog" header="Criar Novo Relatorio" responsive="true" resizable="false" modal="true">
+        	<h:panelGroup id="novorelatorioPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-novorelatorio"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        			<p:defaultCommand target="botao-novorelatorio" scope="novorelatorio-dialog" />
+					<p:outputLabel/>
+						
+        	<p:outputLabel for="novorelatorio" value="Relatório Do Serviço: "/>			
+            <p:inputTextarea id="novorelatorio" rows="6" cols="33" value="#{servicoBean.novorelatorio}" />
+            
+            <p:outputLabel/>
+            <p:commandButton id="botao-novorelatorio" value="Criar" actionListener="#{servicoBean.CriarNovoRelatorio}" 
+            				 process="novorelatorio-dialog" update="painel-novorelatorio table-relatorios toolbar-relatorios" 
+            				 oncomplete="PF('novorelatorio-Dialog').hide()"/>
+            </p:panelGrid>
+            </h:panelGroup>
+           </p:dialog> 
+           
+           <!-- Atualizar Relatorio -->
+      <p:dialog id="relatorioatual-dialog" widgetVar="relatorioatual-Dialog" header="Atualizar Relatorio" responsive="true" resizable="false" modal="true">
+        	<h:panelGroup id="relatorioatualPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-relatorioatual"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        			<p:defaultCommand target="botao-atualizarrelatorio" scope="relatorioatual-dialog" />
+					<p:outputLabel/>
+						
+        	<p:outputLabel for="atualrelatorio" value="Relatório Do Serviço: "/>			
+            <p:inputTextarea id="atualrelatorio" rows="6" cols="33" value="#{servicoBean.relatorioSelecionado.resumo}" />
+            
+            <p:outputLabel for="atualdatarelatorio" value="Data do Relatório: "/>
+            <p:calendar id="atualdatarelatorio" value="#{servicoBean.relatorioSelecionado.data}" pattern="dd/MM/yyyy" mask="true" locale="pt"/>
+            
+            <p:outputLabel></p:outputLabel>
+            <p:commandButton id="botao-atualizarrelatorio" value="Atualizar" action="#{servicoBean.AtualizarRelatorio}" 
+            				 process="relatorioatual-dialog" update="painel-relatorioatual table-relatorios toolbar-relatorios" 
+            				 oncomplete="PF('relatorioatual-Dialog').hide()"/>
+            </p:panelGrid>
+            </h:panelGroup>
+           </p:dialog> 
+           
+     <!-- Pagamentos -->   
+	
+	<p:dialog id="pagamento-dialog" widgetVar="pagamento-Dialog" header="Pagamentos" styleClass="dialogPagamentos" responsive="true" resizable="false" modal="true">
+        
+        
+        <p:toolbar id="toolbar-pagamentos">
+		<f:facet name="left">
+			<p:commandButton id="botao-novopagamento" value="Novo Pagamento" process="@this" action="#{servicoBean.PagamentoEmEdicao}"
+								oncomplete="PF('novopagamento-Dialog').show()" update="painel-novopagamento" />				
+			
+			<span class="ui-separator">
+				<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+			</span>
+								
+			<p:commandButton title="excluir" icon="ui-icon-trash" disabled="#{servicoBean.pagamentoSelecionado == null}"
+								actionListener="#{servicoBean.RemoverPagamento}" update="table-pagamentos toolbar-pagamentos" process="@this">
+				<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir?" icon="ui-icon-alert" />
+    		</p:commandButton>
+			
+		</f:facet>						
+	</p:toolbar>
+        
+        <p:dataTable id="table-pagamentos" value="#{servicoBean.pagamentos}" var="pagamento" style="margin-top: 10px"
+					 emptyMessage="Este Serviço Não Possui Nenhum Pagamento ate o Momento" rows="10" paginator="true" reflow="true" 
+					 paginatorPosition="bottom" selection="#{servicoBean.pagamentoSelecionado}" selectionMode="single" 
+					 rowKey="#{pagamento.id}" scrollable="true" scrollHeight="200">
+					 
+			<p:ajax event="rowSelect" update=":servico-frm:toolbar-pagamentos"/>
+			<p:ajax event="rowUnselect" update=":servico-frm:toolbar-pagamentos"/>
+					 
+			<f:facet name="header">
+				 <h:outputText value="Pagamentos do Serviço Refrente ao Cliente: #{servicoBean.servicoSelecionado.cliente.nome}" />
+			</f:facet>
+		
+		<p:column headerText="Forma de Pagamento" style="text-align:center">
+			<h:outputText value="#{pagamento.forma}" />
+		</p:column>
+		
+		<p:column headerText="Tipo de Pagamento" style="text-align:center">
+			<h:outputText value="#{pagamento.tipo}" />
+		</p:column>
+		
+		<p:column headerText="Valor Total do Pagamento" style="text-align:center">
+			<h:outputText value="#{pagamento.valorTotal}" />
+		</p:column>
+		
+		<p:column headerText="Desconto" style="text-align:center">
+			<h:outputText value="#{pagamento.desconto}%" />
+		</p:column>
+		
+		<p:column headerText="Pago" style="text-align:center">
+			<h:outputText value="Sim" rendered="#{pagamento.pago == true}" />
+			<h:outputText value="Não" rendered="#{pagamento.pago == false}" />
+		</p:column>
+		
+		<p:column headerText="Data do Pagamento" style="text-align:center">
+             <h:outputText value="#{pagamento.dataPagamento}" >
+             	<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>	
+		</p:column>	
+		
+		<p:column headerText="Parcelas" style="text-align:center">
+			<p:commandButton update=":servico-frm:parcela-dialog" oncomplete="PF('parcela-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this" action="#{servicoBean.BuscarParcelasDoPagamento}" disabled="#{pagamento.tipo != 'Parcelado'}">
+				<f:setPropertyActionListener target="#{servicoBean.pagamentoSelecionado}" value="#{pagamento}"/>
+			</p:commandButton>	
+		</p:column>
+		
+		
+	</p:dataTable>
+	
+    </p:dialog>
+    
+     <!-- Novo Pagamento -->   
+	<p:dialog id="novopagamento-dialog" widgetVar="novopagamento-Dialog" header="Novo Pagamento" responsive="true" resizable="false" modal="true">
+        <h:panelGroup id="novopagamentoPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-novopagamento"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        			<p:defaultCommand target="botao-salvarnovopagamento" scope="novopagamento-dialog" />
+					<p:outputLabel/>
+						
+        	<p:outputLabel for="tipopag" value="Tipo de Pagamento: " />
+        	<p:selectOneMenu id="tipopag" value="#{servicoBean.tipoPagamento}" effect="fold" editable="true">
+            	<f:selectItem itemLabel="Selecione" itemValue=""/>
+            	<f:selectItem itemLabel="A Vista" itemValue="A Vista"/>
+            	<f:selectItem itemLabel="Parcelado" itemValue="Parcelado"/>
+            	<p:ajax listener="#{servicoBean.DefinirTipoDePagamento}" update="qntddividido"/>
+            </p:selectOneMenu>
+            
+        	<p:outputLabel for="formapag" value="Forma de Pagamento: " />
+        	<p:selectOneMenu id="formapag" value="#{servicoBean.formaPagamento}" effect="fold" editable="true">
+            	<f:selectItem itemLabel="Selecione" itemValue=""/>
+            	<f:selectItem itemLabel="Dinheiro" itemValue="Dinheiro"/>
+            	<f:selectItem itemLabel="Cartão" itemValue="Cartão"/>
+            	<f:selectItem itemLabel="Cheque" itemValue="Cheque"/>
+            </p:selectOneMenu>
+        	
+        	<p:outputLabel for="qntddividido" value="Quantas Vezes: " />
+        	<p:spinner id="qntddividido" value="#{servicoBean.qntdVezesPagamento}" disabled="#{servicoBean.tipoPagamento != 'Parcelado'}" />
+        	
+        	<p:outputLabel for="valorpag" value="Valor Total: " />
+        	<p:inputText id="valorpag" value="#{servicoBean.valorPagamento}" />
+        	
+        	<p:outputLabel for="descontopag" value="Desconto em Porcentagem: " />
+        	<p:spinner id="descontopag" value="#{servicoBean.descontoPagamento}" stepFactor="5" />
+        	
+        	 <p:outputLabel/>
+             <p:commandButton id="botao-salvarnovopagamento" value="Salvar" actionListener="#{servicoBean.CadastrarPagamento}" 
+            				 process="novopagamento-dialog" update="painel-novopagamento table-pagamentos" 
+            				 oncomplete="PF('novopagamento-Dialog').hide()" />
+        </p:panelGrid>
+        </h:panelGroup>
+        </p:dialog> 
+    
+    <!-- Parcelas -->   
+	
+	<p:dialog id="parcela-dialog" widgetVar="parcela-Dialog" header="Parcelas" responsive="true" styleClass="dialogParcelas" resizable="false" modal="true">
+        <h:panelGroup id="parcelasPanel" layout="block" styleClass="ui-fluid">
+        
+        <p:toolbar id="toolbar-parcelas">
+		<f:facet name="left">	
+			<p:commandButton id="botao-novoparcela" value="Nova Parcela" process="@this" action="#{servicoBean.NovaParcelaEmEdicao}" oncomplete="PF('novaparcela-Dialog').show()" >
+				<p:resetInput target="novaparcela-dialog" />
+			</p:commandButton>													
+		</f:facet>						
+	</p:toolbar>
+        
+        <p:messages id="msg-tableparcelas"/>
+        
+        <p:dataTable id="table-parcelas" value="#{servicoBean.parcelas}" var="parcela" style="margin-top: 10px"
+					 emptyMessage="Este Pagamento Não Possui Nenhuma Parcela ate o Momento" rows="10" paginator="true" reflow="true" 
+					 paginatorPosition="bottom" editable="true" scrollable="true" scrollHeight="200">
+					 
+			<p:ajax event="rowEdit" listener="#{servicoBean.ParcelaEdicao}" update=":servico-frm:msg-tableparcelas"/>
+			<p:ajax event="rowEditCancel" listener="#{servicoBean.ParcelaCancelaEdicao}" update=":servico-frm:msg-tableparcelas"/>
+					 
+			<f:facet name="header">
+				 <h:outputText value="Parcelas do Serviço Refrente ao Cliente: #{servicoBean.servicoSelecionado.cliente.nome}" />
+			</f:facet>
+		
+		<p:column headerText="Valor da Parcela" style="text-align:center">
+			<p:cellEditor>
+				<f:facet name="output"><h:outputText value="#{parcela.valor}" /></f:facet>
+				<f:facet name="input">
+					<p:inputText id="modelInput" value="#{parcela.valor}" style="width:100%">
+						<f:converter converterId="javax.faces.BigDecimal" />
+					</p:inputText>	
+				</f:facet>
+			</p:cellEditor>
+		</p:column>
+		
+		<p:column headerText="Vencimento" style="text-align:center">
+			<p:cellEditor>
+				<f:facet name="output">
+				<h:outputText value="#{parcela.vencimento}" >
+					<f:convertDateTime pattern="dd/MM/yyyy" />
+				</h:outputText>
+				</f:facet>
+				<f:facet name="input">
+					<p:calendar value="#{parcela.vencimento}" pattern="dd/MM/yyyy" mask="true" locale="pt" style="width:100%"/>	
+				</f:facet>
+			</p:cellEditor>
+		</p:column>
+		
+		<p:column headerText="Pago" style="text-align:center">
+			<h:outputText value="Sim" rendered="#{parcela.pago == true}" />
+			<h:outputText value="Não" rendered="#{parcela.pago == false}" />
+		</p:column>
+		
+		<p:column headerText="Data do Pagamento" style="text-align:center">
+             <h:outputText value="#{parcela.dataPagamento}" >
+             	<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>	
+		</p:column>
+		
+		<p:column style="width:30px">
+			<p:rowEditor/>
+		</p:column>
+		
+		<p:column style="width:30px">
+			<p:commandButton title="excluir" icon="ui-icon-trash" action="#{servicoBean.RemoverParcela}" update="table-parcelas" process="@this">
+				<f:setPropertyActionListener target="#{servicoBean.parcelaSelecionado}" value="#{parcela}"/>
+				<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir?" icon="ui-icon-alert" />
+    		</p:commandButton>
+		</p:column>
+		
+		<p:column style="width:30px">
+			<p:commandButton title="Pagar" icon="fa fa-fw fa-money" action="#{servicoBean.PagarParcela}" update="table-parcelas" process="@this">
+				<f:setPropertyActionListener target="#{servicoBean.parcelaSelecionado}" value="#{parcela}"/>
+    		</p:commandButton>
+		</p:column>	
+		
+		<f:facet name="footer">
+			O Pagamento foi Dividido em #{fn:length(servicoBean.parcelas)} Parcelas. 
+		</f:facet>
+		
+	</p:dataTable>
+	</h:panelGroup>
+    </p:dialog>     
+    
+     <!-- Nova Parcela -->
+        
+	<p:dialog id="novaparcela-dialog" widgetVar="novaparcela-Dialog" header="Novo Parcela" responsive="true" resizable="false" modal="true">
+        <h:panelGroup id="novaparcelaPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-novaparcela"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+					<p:defaultCommand target="botao-novaparcela" scope="novaparcela-dialog" />
+					<p:outputLabel/>
+						        	
+        	<p:outputLabel for="valorparcela" value="Valor da Parcela: " />
+        	<p:inputText id="valorparcela" value="#{servicoBean.parcela.valor}" />
+        	
+        	<p:outputLabel for="vencimentoparcela" value="Vencimento: " />
+        	<p:calendar id="vencimentoparcela" value="#{servicoBean.parcela.vencimento}" pattern="dd/MM/yyyy" mask="true" locale="pt" />
+        	
+        	 <p:outputLabel/>
+             <p:commandButton id="botao-novaparcela" value="Salvar" actionListener="#{servicoBean.CadastrarParcela}" 
+            				 process="novaparcela-dialog" update="painel-novaparcela table-parcelas" 
+            				 oncomplete="PF('novaparcela-Dialog').hide()" />
+        </p:panelGrid>
+        </h:panelGroup>
+        </p:dialog>     		         			
+    
+     <!-- Finalizar Serviço -->   
+	<p:dialog id="servicofinal-dialog" widgetVar="servicofinal-Dialog" header="Finalizar Serviço" responsive="true" resizable="false" modal="true">
+        <h:panelGroup id="servicofinalPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-finalizarservico"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+        			<p:defaultCommand target="botao-finalizarservico" scope="servicofinal-dialog" />
+					<p:outputLabel/>
+						
+        	<p:outputLabel for="datafinal" value="Data Finalizado: " />
+            <p:calendar id="datafinal" value="#{servicoBean.datafinalizado}" pattern="dd/MM/yyyy" mask="true" locale="pt" />
+        	
+        	<p:outputLabel for="relatoriofinal" value="Relatório Final Do Serviço: "/>			
+            <p:inputTextarea id="relatoriofinal" rows="6" cols="33" value="#{servicoBean.relatoriofinal}" />	
+            
+        	 <p:outputLabel/>
+             <p:commandButton id="botao-finalizarservico" value="Finalizar" actionListener="#{servicoBean.FinalizarServico}" 
+            				 process="servicofinal-dialog" update="painel-finalizarservico servicoCarousel" 
+            				 oncomplete="PF('servicofinal-Dialog').hide()" />
+        </p:panelGrid>
+        </h:panelGroup>
+        </p:dialog> 
+        
+     <!-- Buscar Por Cliente -->   
+	
+	<p:dialog id="buscaservicocl-dialog" widgetVar="buscaservicocl-Dialog" header="Buscar Serviço Por Cliente" responsive="true" resizable="false" modal="true">
+         <h:panelGroup id="buscaservicoclPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-buscaservicocl"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+					<p:defaultCommand target="botao-buscarservicocl" scope="buscaservicocl-dialog" />
+					<p:outputLabel/>
+						
+			<p:outputLabel for="clientebusca" value="Nome Do Cliente: " />
+            <p:autoComplete id="clientebusca" value="#{servicoBean.clientenome}" var="cliente" itemLabel="#{cliente}" 
+            			itemValue="#{cliente}" forceSelection="true" completeMethod="#{servicoBean.CompletarNomeClienteString}" />
+        
+             <p:outputLabel></p:outputLabel>
+             <p:commandButton id="botao-buscarservicocl" value="Buscar" actionListener="#{servicoBean.BuscarPorCliente}" 
+            				 process="buscaservicocl-dialog" update="painel-buscaservicocl" 
+            				 oncomplete="PF('buscaservicocl-Dialog').hide()"/>			
+    	</p:panelGrid>
+    	</h:panelGroup>
+    </p:dialog>		
+    
+    <!-- Buscar Por Status -->   
+	
+	<p:dialog id="buscaservicostatus-dialog" widgetVar="buscaservicostatus-Dialog" header="Buscar Serviço Por Status" responsive="true" resizable="false" modal="true">
+         <h:panelGroup id="buscaservicostPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder" id="painel-buscaservicost"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+					<p:defaultCommand target="botao-buscarservicost" scope="buscaservicostatus-dialog" />
+					<p:outputLabel/>
+						
+			 <p:outputLabel for="statusbusca" value="Status: " />
+            <p:selectOneMenu id="statusbusca" value="#{servicoBean.statusbusca}" effect="fold" editable="true">
+            	<f:selectItem itemLabel="Selecione" itemValue=""/>
+            	<f:selectItem itemLabel="Em Andamento" itemValue="Em Andamento"/>
+            	<f:selectItem itemLabel="Aguardando Retorno Do Cliente" itemValue="Aguardando Retorno Do Cliente"/>
+            	<f:selectItem itemLabel="Finalizado" itemValue="Finalizado"/>
+            </p:selectOneMenu>
+        
+             <p:outputLabel></p:outputLabel>
+             <p:commandButton id="botao-buscarservicost" value="Buscar" actionListener="#{servicoBean.BuscarPorStatus}" 
+            				 process="buscaservicostatus-dialog" update="painel-buscaservicost servicoCarousel" 
+            				 oncomplete="PF('buscaservicostatus-Dialog').hide()"/>			
+    	</p:panelGrid>
+    	</h:panelGroup>
+    </p:dialog>
+    
+    <p:confirmDialog showEffect="fade" hideEffect="fade" id="confirm-dialog" global="true">
+		<p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+		<p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+	</p:confirmDialog>
+    
+    	
+ </h:form>
+ </ui:define>
+ </ui:composition>
+    
+            
+  

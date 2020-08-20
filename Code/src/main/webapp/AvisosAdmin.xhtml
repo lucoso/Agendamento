@@ -1,0 +1,153 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/LayoutAdmin.xhtml">
+	
+	<ui:define name="content">
+		<h1 class="aw-page-title">Area do Administrador</h1>
+		<h2>Avisos Para os Clientes</h2>
+		
+		<h:form id="aviso-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+					<p:commandButton value="Novo Aviso" action="#{avisoBean.AvisoEmEdicao}"
+						process="@this" icon="ui-icon-plusthick" update="aviso-dialog"
+						oncomplete="PF('aviso-Dialog').show()"  >
+						<p:resetInput target="aviso-dialog" />
+					</p:commandButton>
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+					
+					<p:commandButton value="Atualizar Aviso" process="@this" icon="fa fa-fw fa-edit" 
+										update="avisoatual-dialog" disabled="#{avisoBean.avisoSelecionado == null}"
+										oncomplete="PF('avisoatual-Dialog').show()" />	
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton title="Excluir" icon="ui-icon-trash" action="#{avisoBean.Remover}" 
+									update="table-avisos toolbar" process="@this" disabled="#{avisoBean.avisoSelecionado == null}">
+					<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir?" icon="ui-icon-alert" />
+    			</p:commandButton>				
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<div class="ui-fluid">
+			<p:panel header="Buscar Avisos do Cliente" id="panel-buscas" >
+ 			<p:panelGrid id="painel-buscas" columns="2" layout="grid" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-2, ui-grid-col-4" >
+ 				<p:defaultCommand target="botao-buscar" scope="panel-buscas" />
+				<p:outputLabel/>
+			
+				<p:outputLabel for="nomecliente" value="Nome do Cliente: " />
+            	<p:autoComplete id="nomecliente" value="#{avisoBean.clienteparabuscar}" var="cliente" itemLabel="#{cliente.nome}" 
+            			itemValue="#{cliente}" forceSelection="true" converter="empresaConverter" completeMethod="#{avisoBean.CompletarNomeEmpresaCliente}" />		
+            	
+            	<p:outputLabel/>
+            	<p:commandButton id="botao-buscar" value="Buscar" action="#{avisoBean.Buscar}" process="panel-buscas" update="table-avisos panel-buscas"/>	
+ 			</p:panelGrid>
+ 		</p:panel>
+ 		</div>		
+			
+			<p:dataTable id="table-avisos" value="#{avisoBean.avisos}" var="aviso" reflow="true"
+				emptyMessage="Nenhum Aviso Cadastrado Para este Cliente ate o Momento." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" 
+				selection="#{avisoBean.avisoSelecionado}" selectionMode="single" rowKey="#{aviso.id}">
+					 
+			<p:ajax event="rowSelect" update=":aviso-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":aviso-frm:toolbar"/>
+				
+				<f:facet name="header">
+					Avisos do Cliente
+				</f:facet>
+				
+				<p:column headerText="ID" style="text-align:center">
+					<h:outputText value="#{aviso.id}"/>
+				</p:column>
+				
+				<p:column headerText="Data Criado" style="text-align:center">
+					<h:outputText value="#{aviso.dataCriado}">
+						<f:convertDateTime pattern="dd/MM/yyyy"/>
+					</h:outputText>	
+				</p:column>
+				
+				<p:column headerText="Aviso" style="text-align:center" >
+					<h:outputText value="#{aviso.msg}"/>
+				</p:column>
+			
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<!-- Dialog Aviso -->
+	
+	<p:dialog widgetVar="aviso-Dialog" id="aviso-dialog" header="Cadastrar Avisos"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="avisoPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarAviso" scope="aviso-dialog" />
+						<p:outputLabel/>
+						
+            			<p:outputLabel for="clienteparaaviso" value="Nome do Cliente: " />
+            			<p:autoComplete id="clienteparaaviso" value="#{avisoBean.aviso.empresaCliente}" var="empresa" itemLabel="#{empresa.nome}" 
+            			itemValue="#{empresa}" forceSelection="true" converter="empresaConverter" completeMethod="#{avisoBean.CompletarNomeEmpresaCliente}" />	
+						
+						<p:outputLabel for="msg" value="Aviso: " />
+						<p:inputTextarea id="msg" rows="4" cols="20" value="#{avisoBean.aviso.msg}" />	
+			
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarAviso" value="Salvar" actionListener="#{avisoBean.Salvar}" 
+										process="aviso-dialog" update="avisoPanel" oncomplete="if (!args.validationFailed) PF('aviso-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+
+			</p:dialog>
+			
+			<!-- Dialog Atualizar Aviso -->
+	
+	<p:dialog widgetVar="avisoatual-Dialog" id="avisoatual-dialog" header="Atualizar Avisos"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="avisoatualPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-atualizarAviso" scope="avisoatual-dialog" />
+						<p:outputLabel/>
+						
+            			<p:outputLabel for="clienteparaavisoatual" value="Nome do Cliente: " />
+            			<p:autoComplete id="clienteparaavisoatual" value="#{avisoBean.avisoSelecionado.empresaCliente}" var="empresa" itemLabel="#{empresa.nome}" 
+            			itemValue="#{empresa}" forceSelection="true" converter="empresaConverter" completeMethod="#{avisoBean.CompletarNomeEmpresaCliente}" />	
+						
+						<p:outputLabel for="msgatual" value="Aviso: " />
+						<p:inputTextarea id="msgatual" rows="4" cols="20" value="#{avisoBean.avisoSelecionado.msg}" />	
+			
+						<p:outputLabel/>
+						<p:commandButton id="botao-atualizarAviso" value="Salvar" actionListener="#{avisoBean.Atualizar}" 
+										process="avisoatual-dialog" update="avisoatualPanel" oncomplete="if (!args.validationFailed) PF('avisoatual-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+
+			</p:dialog>
+			
+			<p:confirmDialog showEffect="fade" hideEffect="fade" id="confirm-dialog" global="true">
+				<p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+				<p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+			</p:confirmDialog>
+      		
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

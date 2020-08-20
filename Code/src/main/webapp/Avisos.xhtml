@@ -1,0 +1,131 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+		<f:metadata>
+			<f:viewAction action="#{avisoClienteBean.BuscarUsuario}"></f:viewAction>
+			<f:viewAction action="#{avisoClienteBean.BuscarAvisos}"></f:viewAction>
+		</f:metadata>
+	
+		<h1 class="aw-page-title">Avisos</h1>
+		
+		<h:form id="avisocl-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+					<p:commandButton value="Atualizar Aviso" process="@this" icon="fa fa-fw fa-edit" 
+										update="aviso-dialog" disabled="#{avisoClienteBean.avisoSelecionado == null}"
+										oncomplete="PF('aviso-Dialog').show()" />
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton title="Excluir" icon="ui-icon-trash" action="#{avisoClienteBean.Remover}" 
+									update="table-avisos toolbar" process="@this" disabled="#{avisoClienteBean.avisoSelecionado == null}">
+					<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir?" icon="ui-icon-alert" />
+    			</p:commandButton>				
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<br/>
+			
+			<div class="ui-fluid">
+			<p:panel header="Filtros para Buscar os Avisos" id="panel-filtros" toggleable="true" collapsed="true">
+ 			<p:panelGrid id="painel-filtros" columns="2" layout="grid" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-2, ui-grid-col-4" >
+ 				<p:defaultCommand target="botao-filtrar" scope="panel-filtros" />
+				<p:outputLabel/>
+			
+				<p:outputLabel for="datainicial" value="Data Inicial: " />
+            	<p:calendar id="datainicial" value="#{avisoClienteBean.datainicial}" pattern="dd/MM/yyyy" mask="true" locale="pt" />
+            	
+            	<p:outputLabel for="datafinal" value="Data Final: " />
+            	<p:calendar id="datafinal" value="#{avisoClienteBean.datafinal}" pattern="dd/MM/yyyy" mask="true" locale="pt" />		
+            
+            	<p:commandButton value="Limpar" action="#{avisoClienteBean.Limpar}" process="@this" update="panel-filtros" />
+            	<p:commandButton id="botao-filtrar" value="Filtrar" action="#{avisoClienteBean.BuscarAvisosPorPeriodo}" update="table-avisos" process="panel-filtros" />	
+ 			</p:panelGrid>
+ 		</p:panel>
+ 		</div>		
+			
+			<br/>
+			
+			<p:dataTable id="table-avisos" value="#{avisoClienteBean.avisos}" var="aviso" reflow="true"
+				emptyMessage="Nenhum Aviso Cadastrado." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" lazy="true"
+				selection="#{avisoClienteBean.avisoSelecionado}" selectionMode="single" rowKey="#{aviso.id}">
+					 
+			<p:ajax event="rowSelect" update=":avisocl-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":avisocl-frm:toolbar"/>
+				
+				<f:facet name="header">
+					<p:outputLabel value="#{avisoClienteBean.legenda}"/>
+				</f:facet>
+				
+				<p:column headerText="Aviso" style="text-align:center" >
+					<h:outputText value="#{aviso.msg}"/>
+				</p:column>
+				
+				<p:column headerText="Data" style="text-align:center" >
+					<h:outputText value="#{aviso.data}">
+						<f:convertDateTime pattern="dd/MM/yyyy"/>
+					</h:outputText>	
+				</p:column>
+				
+				<p:column headerText="Finalizado" style="text-align:center">
+					<h:outputText value="Sim" rendered="#{aviso.finalizado == true}"/>
+					<h:outputText value="Não" rendered="#{aviso.finalizado == false}"/>
+				</p:column>
+				
+				<p:column headerText="Finalizar" style="text-align:center" >
+					<p:commandButton id="botao-finalizar" title="Finalizar Aviso" icon="fa fa-fw fa-check-circle" action="#{avisoClienteBean.Finalizar}" process="@this"
+										update="table-avisos botao-finalizar" disabled="#{aviso.finalizado == true}">
+						<f:setPropertyActionListener value="#{aviso}" target="#{avisoClienteBean.avisoParaFinalizar}"/>
+					</p:commandButton>					
+				</p:column>
+
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<!-- Dialog Aviso -->
+	
+	<p:dialog widgetVar="aviso-Dialog" id="aviso-dialog" header="Atualizar Avisos"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="avisoPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarAviso" scope="aviso-dialog" />
+						<p:outputLabel/>
+						
+            			<p:outputLabel for="avisodata" value="Data: " />
+            		 	<p:calendar id="avisodata" value="#{avisoClienteBean.avisoSelecionado.data}" mask="true" locale="pt" pattern="dd/MM/yyyy" />
+						
+						<p:outputLabel for="msg" value="Aviso: " />
+						<p:inputTextarea id="msg" rows="4" cols="20" value="#{avisoClienteBean.avisoSelecionado.msg}" />	
+			
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarAviso" value="Salvar" actionListener="#{avisoClienteBean.Atualizar}" 
+										process="aviso-dialog" update="avisoPanel table-avisos toolbar" oncomplete="if (!args.validationFailed) PF('aviso-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+
+			</p:dialog>
+			
+			<p:confirmDialog showEffect="fade" hideEffect="fade" id="confirm-dialog" global="true">
+				<p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+				<p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+			</p:confirmDialog>
+      		
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

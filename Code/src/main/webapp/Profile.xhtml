@@ -1,0 +1,176 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+	
+	<f:metadata>
+			<f:viewAction action="#{profileBean.Inicializar}"></f:viewAction>
+		</f:metadata>	
+		
+		<h1 class="aw-page-title">Profile</h1>
+		
+		<h:form id="profile-frm">
+		
+			<p:messages autoUpdate="true"/>
+			
+			<p:toolbar>
+				<p:toolbarGroup>
+					
+ 					<p:commandButton value="Atualizar Dados Pessoais" icon="fa fa-fw fa-edit" 
+            				 update="dadospessoais-dialog" process="@this" action="#{profileBean.BuscarDadosPessoais}"
+            				 oncomplete="PF('dadospessoais-Dialog').show()"/>
+            				 		
+					<span class="ui-separator"/>
+			
+					<p:commandButton value="Atualizar Dados de Usuario" process="@this" icon="fa fa-fw fa-key" update="dadosusuario-dialog"
+						action="#{profileBean.BuscarDadosUsuario}" oncomplete="PF('dadosusuario-Dialog').show()" />
+						
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<br/>
+			
+			<div class="ui-fluid">
+ 			<p:panelGrid id="painel-profile" columns="2" layout="grid" style="margin-top: 20px; margin-bottom: 40px" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-6, ui-grid-col-6" >
+ 			<p:panelGrid id="painel-profilepessoal" columns="2" layout="grid" style="margin-top: 20px; margin-bottom: 40px" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-6, ui-grid-col-6" >
+			
+				<h2>Dados Pessoais</h2>
+            	<p:outputLabel />
+            	
+            	<p:outputLabel for="nome" value="Nome Completo: " />
+            	<p:outputLabel id="nome" value="#{profileBean.funcionario.nome} " />
+            	
+            	<p:outputLabel for="datanasc" value="Data de Nascimento: " />
+            	<p:outputLabel id="datanasc" value="#{profileBean.datanascimento} " />	
+            	
+            	<p:outputLabel for="cpf" value="CPF: " />
+            	<p:outputLabel id="cpf" value="#{profileBean.funcionario.cpf} " />
+            	
+            	<p:outputLabel for="tel" value="Telefone: " />
+            	<p:outputLabel id="tel" value="#{profileBean.funcionario.tel} " />
+            	
+            	<p:outputLabel for="cel" value="Celular: " />
+            	<p:outputLabel id="cel" value="#{profileBean.funcionario.cel} " />
+            	
+            	</p:panelGrid>
+            	
+            <p:panelGrid id="painel-profileuser" columns="2" layout="grid" style="margin-top: 20px; margin-bottom: 40px" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-6, ui-grid-col-6" >
+			
+				<h2>Dados do Usuario</h2>
+            	<p:outputLabel />
+            	
+            	<p:outputLabel for="email" value="E-mail: " />
+            	<p:outputLabel id="email" value="#{profileBean.usuario.login} " />
+            	
+            	<p:outputLabel for="senha" value="Senha: " />
+            	<p:outputLabel id="senha" value="****************" />
+            	
+            	<p:outputLabel for="papel" value="Papel: " />
+            	<p:outputLabel id="papel" value="#{profileBean.usuario.papel} " />
+            	
+            	<p:outputLabel value="Status: " />
+            	<p:outputLabel rendered="#{profileBean.usuario.ativo == true}" value="Ativo" />
+            	<p:outputLabel rendered="#{profileBean.usuario.ativo == false}" value="Inativo" />
+ 				
+ 			</p:panelGrid>
+ 		</p:panelGrid>	
+ 	</div>		
+			
+			
+		<!-- Dialogs da Pagina -->	
+			<!-- Dialog atualizar dados pessoais -->
+	
+	<p:dialog widgetVar="dadospessoais-Dialog" id="dadospessoais-dialog" header="Atualizar Dados Pessoais"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+			
+				<h:panelGroup id="dadospessoaisPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+						<p:defaultCommand target="botao-atualizarf" scope="dadospessoais-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="nomeatual" value="Nome Completo: " />
+            			<p:inputText id="nomeatual" value="#{profileBean.funcionarioParaAtualizar.nome}"/>
+            			
+            			<p:outputLabel for="datanascatual" value="Data de Nascimento: " />
+            			<p:calendar id="datanascatual" value="#{profileBean.funcionarioParaAtualizar.datanasc}" pattern="dd/MM/yyyy" 
+										mask="true" locale="pt" />
+            			
+            			<p:outputLabel for="cpfatual" value="CPF: " />
+            			<p:inputMask id="cpfatual" value="#{profileBean.funcionarioParaAtualizar.cpf}" mask="999.999.999-99" />
+            			
+            			<p:outputLabel for="telatual" value="Telefone Fixo: " />
+            			<p:inputMask id="telatual" value="#{profileBean.funcionarioParaAtualizar.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="celatual" value="Celular: " />
+            			<p:inputMask id="celatual" value="#{profileBean.funcionarioParaAtualizar.cel}" mask="(99) 99999-9999" />
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-atualizarf" value="Atualizar" actionListener="#{profileBean.AtualizarFuncionario}" 
+										process="dadospessoais-dialog" update="dadospessoaisPanel painel-profile painel-profilepessoal" oncomplete="if (!args.validationFailed) PF('dadospessoais-Dialog').hide()"/>
+										
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				
+			</p:dialog>
+			
+			<!-- Dialog atualizar dados de usuario -->
+	
+	<p:dialog widgetVar="dadosusuario-Dialog" id="dadosusuario-dialog" header="Atualizar Dados de Usuario"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+			
+				<h:panelGroup id="userPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="3" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-8, ui-grid-col-12">
+						<p:defaultCommand target="botao-atualizaruser" scope="dadosusuario-dialog" />
+						<p:outputLabel/>
+						<p:outputLabel/>
+						
+						<p:outputLabel/>
+						<p:outputLabel id="msg-senha" value="#{profileBean.mensagem}" style="color: red" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="login" value="E-mail: " />
+            			<p:inputText id="login" value="#{profileBean.usuarioParaAtualizar.login}">
+            				<p:ajax listener="#{profileBean.MudouLogin}"/>
+            			</p:inputText>	
+            			<p:outputLabel/>
+            			
+            			<p:outputLabel for="senhaatual" value="Digite a Senha Atual: " />
+            			<p:inputText id="senhaatual" value="#{profileBean.senhaatual}">
+            				<p:ajax listener="#{profileBean.VerificarSenhaAtual}" update="novasenha novasenha2"/>
+            			</p:inputText>	
+            			<p:outputLabel/>
+            			
+            			<p:outputLabel for="novasenha" value="Digite a Nova Senha: " />
+            			<p:password id="novasenha" value="#{profileBean.novasenha}" match="novasenha2" title="A senha deve conter no Minimo 6 e no Maximo 12 caracteres" 
+            							disabled="#{profileBean.correto == true}" />
+            			<p:tooltip id="tooltipsenha" for="novasenha" showEvent="focus" hideEvent="blur" />
+            			
+            			<p:outputLabel for="novasenha2" value="Repita a Nova Senha: " />
+            			<p:password id="novasenha2" value="#{profileBean.novasenha}" disabled="#{profileBean.correto == true}" />
+            			<p:outputLabel />
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-atualizaruser" value="Atualizar" actionListener="#{profileBean.AtualizarUsuario}" 
+										process="dadosusuario-dialog" update="userPanel painel-profile painel-profileuser" oncomplete="if (!args.validationFailed) PF('dadosusuario-Dialog').hide()"/>
+						<p:outputLabel/>				
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				
+			</p:dialog>
+			
+		
+			
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

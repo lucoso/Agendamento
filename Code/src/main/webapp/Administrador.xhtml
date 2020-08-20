@@ -1,0 +1,310 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/LayoutAdmin.xhtml">
+	
+	<ui:define name="content">
+		<h1 class="aw-page-title">Area do Administrador</h1>
+		
+		<h:form id="admin-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+					<p:commandButton value="Novo Cliente" action="#{adminBean.ClienteEmEdicao}"
+						process="@this" icon="ui-icon-plusthick" update="cliente-dialog"
+						oncomplete="PF('cliente-Dialog').show()"  >
+						<p:resetInput target="cliente-dialog" />
+					</p:commandButton>
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton value="Atualizar Cliente" process="@this" icon="fa fa-fw fa-edit" 
+										update="cliente-dialog" disabled="#{adminBean.clienteSelecionado == null}"
+										oncomplete="PF('cliente-Dialog').show()" action="#{adminBean.DefinirTipo}" >
+						<f:setPropertyActionListener value="#{adminBean.clienteSelecionado}" target="#{adminBean.cliente}" />
+					</p:commandButton>
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton value="Endereço Para Empresa Cliente" action="#{adminBean.EnderecoEmEdicao}"
+						process="@this" icon="fa fa-fw fa-list-alt" disabled="#{adminBean.clienteSelecionado == null}" 
+						oncomplete="PF('enderecocliente-Dialog').show()" update="enderecocliente-dialog"/>
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+					
+					<p:commandButton value="Novo Funcionario Para Empresa" action="#{adminBean.FuncionarioEmEdicao}"
+						process="@this" icon="ui-icon-plusthick" update="func-dialog" disabled="#{adminBean.clienteSelecionado == null}"
+						oncomplete="PF('func-Dialog').show()"  >
+						<p:resetInput target="func-dialog" />
+					</p:commandButton>
+										
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<p:dataTable id="table-clientes" value="#{adminBean.clientes}" var="cliente" reflow="true"
+				emptyMessage="Nenhum Cliente Cadastrado ate o Momento." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" lazy="true"
+				selection="#{adminBean.clienteSelecionado}" selectionMode="single" rowKey="#{cliente.id}">
+					 
+			<p:ajax event="rowSelect" update=":admin-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":admin-frm:toolbar"/>
+				
+				<p:column headerText="Tipo" style="text-align:center" filterBy="#{cliente.tipo}">
+					<h:outputText value="#{cliente.tipo}"/>
+				</p:column>
+				
+				<p:column headerText="Nome" style="text-align:center" filterBy="#{cliente.nome}">
+					<h:outputText value="#{cliente.nome}"/>
+				</p:column>
+				
+				<p:column headerText="CPF" style="text-align:center" filterBy="#{cliente.cpf}">
+					<h:outputText value="#{cliente.cpf}"/>
+				</p:column>
+				
+				<p:column headerText="CNPJ" style="text-align:center" filterBy="#{cliente.cnpj}">
+					<h:outputText value="#{cliente.cnpj}"/>
+				</p:column>
+				
+				<p:column headerText="Nome do Contato" style="text-align:center">
+					<h:outputText value="#{cliente.contato}"/>
+				</p:column>
+				
+				<p:column headerText="Telefones" style="text-align:center">
+					<p:commandButton update=":admin-frm:telefone-dialog" oncomplete="PF('telefone-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{adminBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+				
+				<p:column headerText="Endereço" style="text-align:center">
+					<p:commandButton update=":admin-frm:endereco-dialog" oncomplete="PF('endereco-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{adminBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+			
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<!-- Dialog empresa -->
+	
+	<p:dialog widgetVar="cliente-Dialog" id="cliente-dialog" header="Dados do Cliente"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="clientePanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+						<p:defaultCommand target="botao-salvarCliente" scope="cliente-dialog" />
+						<p:outputLabel/>			
+            			
+            			<p:outputLabel for="tipocliente" value="Tipo De Cliente: " />
+						<p:selectOneRadio id="tipocliente" value="#{adminBean.tipocliente}">
+							<f:selectItem itemLabel="Fisico" itemValue="Fisico" />
+							<f:selectItem itemLabel="Juridico" itemValue="Juridico" />
+							<p:ajax update="cpf cnpj nomecontato"  />
+						</p:selectOneRadio>
+						
+						<p:outputLabel for="nome" value="Nome do Cliente: " />
+						<p:inputText id="nome" value="#{adminBean.cliente.nome}" />
+						
+						<p:outputLabel for="cpf" value="CPF: " />
+            			<p:inputMask id="cpf" value="#{adminBean.cliente.cpf}" mask="999.999.999-99" disabled="#{adminBean.tipocliente != 'Fisico'}" />
+            			
+						<p:outputLabel for="cnpj" value="CNPJ: " />
+						<p:inputMask id="cnpj" value="#{adminBean.cliente.cnpj}" mask="99.999.999/9999-99" disabled="#{adminBean.tipocliente != 'Juridico'}"  />
+						
+						<p:outputLabel for="nomecontato" value="Nome do Contato na Empresa: " />
+						<p:inputText id="nomecontato" value="#{adminBean.cliente.contato}" disabled="#{adminBean.tipocliente != 'Juridico'}"  />
+							
+            			<p:outputLabel for="fixo" value="Telefone Fixo: " />
+            			<p:inputMask id="fixo" value="#{adminBean.cliente.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="cel" value="Celular: " />
+            			<p:inputMask id="cel" value="#{adminBean.cliente.cel}" mask="(99) 99999-9999" />
+            			
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarCliente" value="Salvar" actionListener="#{adminBean.Salvar}" 
+										process="cliente-dialog" update="clientePanel" oncomplete="if (!args.validationFailed) PF('cliente-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+
+			</p:dialog>
+      
+      <!-- Dialog telefones -->
+        
+        <p:dialog id="telefone-dialog" widgetVar="telefone-Dialog" header="Telefones" responsive="true" modal="true" showEffect="blind" hideEffect="explode">
+        				
+        		<h:panelGroup id="telPanel" layout="block" styleClass="ui-fluid">
+						
+        	<p:outputPanel id="telefone-detalhes" style="text-align:center;">
+            <p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+           
+                <f:facet name="header">
+                    <p:outputLabel value="Telefones do Cliente: #{adminBean.clienteSelecionado.nome}" /> 
+                </f:facet>
+ 
+                <h:outputText value="Telefone Fixo: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.tel}" />
+                
+                <h:outputText value="Telefone Celular: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.cel}" />
+                
+            </p:panelGrid>
+          </p:outputPanel>
+        </h:panelGroup>
+      </p:dialog>  	 
+		
+	<!-- Dialog funcionario da empresa -->
+	
+	<p:dialog widgetVar="func-Dialog" id="func-dialog" header="Novo Funcionario"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="funcPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarFuncionario" scope="func-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="nomefunc" value="Nome: " />
+						<p:inputText id="nomefunc" value="#{adminBean.funcionario.nome}" />
+						
+						<p:outputLabel for="datanascfunc" value="Data de Nascimento: " />
+            			<p:calendar id="datanascfunc" value="#{adminBean.funcionario.datanasc}" pattern="dd/MM/yyyy" mask="true" locale="pt" />
+            			
+						<p:outputLabel for="cpffunc" value="CPF: " />
+            			<p:inputMask id="cpffunc" value="#{adminBean.funcionario.cpf}" mask="999.999.999-99" />
+            			
+						<p:outputLabel for="telfunc" value="Telefone Fixo: " />
+            			<p:inputMask id="telfunc" value="#{adminBean.funcionario.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="celfunc" value="Celular: " />
+            			<p:inputMask id="celfunc" value="#{adminBean.funcionario.cel}" mask="(99) 99999-9999" />
+            			
+            			<p:outputLabel for="dataadmissao" value="Data de Admissão: " />
+            			<p:calendar id="dataadmissao" value="#{adminBean.funcionario.dataAdmissao}" pattern="dd/MM/yyyy" mask="true" locale="pt" />
+            			
+            			<p:outputLabel for="salario" value="Salario:" />
+            			<p:inputText id="salario" value="#{adminBean.funcionario.salario}">
+            				<f:converter converterId="javax.faces.BigDecimal" />
+            			</p:inputText>
+            			
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarFuncionario" value="Cadastrar" actionListener="#{adminBean.CadastrarFuncionario}" 
+										process="func-dialog" update="funcPanel toolbar" oncomplete="if (!args.validationFailed) PF('func-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+
+			</p:dialog>	
+			
+			<!-- dialog endereço para cliente -->
+			
+			<p:dialog widgetVar="enderecocliente-Dialog" id="enderecocliente-dialog" header="Endereço para Cliente"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="endcPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-salvarEndereco" scope="enderecocliente-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="rua" value="Rua: " />
+						<p:inputText id="rua" value="#{adminBean.endereco.rua}" />	
+						
+						<p:outputLabel for="numero" value="Número: " />
+						<p:inputText id="numero" value="#{adminBean.endereco.numero}" />
+						
+						<p:outputLabel for="complemento" value="Complemento: " />
+						<p:inputText id="complemento" value="#{adminBean.endereco.complemento}" />
+						
+						<p:outputLabel for="bairro" value="Bairro: " />
+						<p:inputText id="bairro" value="#{adminBean.endereco.bairro}" />
+						
+						<p:outputLabel for="cep" value="CEP: " />
+						<p:inputMask id="cep" value="#{adminBean.endereco.cep}" mask="99999-999" />
+						
+						<p:outputLabel for="cidade" value="Cidade: " />
+						<p:inputText id="cidade" value="#{adminBean.endereco.cidade}" />
+						
+						<p:outputLabel for="uf" value="UF: " />
+            			<p:selectOneMenu id="uf" value="#{adminBean.endereco.uf}">
+            				<f:selectItem itemLabel="Escolha a UF" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{adminBean.ufs}" />	
+            			</p:selectOneMenu>
+            			
+            			<p:outputLabel for="pais" value="País: " />
+            			<p:selectOneMenu id="pais" value="#{adminBean.endereco.pais}" editable="true">
+            				<f:selectItem itemLabel="Escolha o País" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{adminBean.paises}" />	
+            			</p:selectOneMenu>
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-salvarEndereco" value="Salvar" actionListener="#{adminBean.CadastrarEndereco}" 
+										process="enderecocliente-dialog" update="enderecocliente-dialog table-clientes" oncomplete="if (!args.validationFailed) PF('enderecocliente-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>	
+			</p:dialog>
+			
+			<!-- Dialog Endereços -->
+        
+        <p:dialog  widgetVar="endereco-Dialog" header="Endereço" modal="true" id="endereco-dialog" 
+        				showEffect="blind" hideEffect="explode" responsive="true">
+        		<h:panelGroup id="endPanel2" layout="block" styleClass="ui-fluid">
+						
+        	<p:outputPanel id="endereco-detalhes" style="text-align:center;">
+            <p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+           
+                <f:facet name="header">
+                    <p:outputLabel value="Endereço do Cliente: #{adminBean.clienteSelecionado.nome}" /> 
+                </f:facet>
+ 
+                <h:outputText value="Rua: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.rua}" />
+                
+                <h:outputText value="Número: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.numero}" />
+                
+                <h:outputText value="Complemento: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.complemento}" />
+                
+                <h:outputText value="Bairro: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.bairro}" />
+                
+                <h:outputText value="Cidade: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.cidade}" />
+                
+                <h:outputText value="CEP: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.cep}" />
+                
+                <h:outputText value="UF: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.uf}" />
+                
+                <h:outputText value="País: " />
+                <h:outputText value="#{adminBean.clienteSelecionado.endereco.pais}" />
+
+            </p:panelGrid>
+          </p:outputPanel>
+        </h:panelGroup>
+      </p:dialog>  		
+			
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

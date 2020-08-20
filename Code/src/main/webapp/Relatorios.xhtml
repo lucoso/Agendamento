@@ -1,0 +1,297 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+	
+		<h1 class="aw-page-title">Relatorios</h1>
+		
+		<h:form id="relatorios-frm">
+		
+			<p:messages autoUpdate="true"/>
+			
+			<p:toolbar>
+				<p:toolbarGroup>
+					
+					<p:commandButton value="Novo Grafico" process="@this" icon="fa fa-fw fa-bar-chart" update="grafico-dialog"
+						oncomplete="PF('grafico-Dialog').show()"  />
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+			
+					<p:commandButton value="Gerar Relatorio Financeiro" process="@this" icon="fa fa-fw fa-table" update="financeiro-dialog"
+						oncomplete="PF('financeiro-Dialog').show()" />
+						
+					<span class="ui-separator"/>	
+					
+					<p:commandButton value="Relatorio dos Agendamentos" process="@this" icon="fa fa-fw fa-calendar" update="agendamentos-dialog"
+									action="#{relatorioBean.BuscarAgendamentos}" oncomplete="PF('agendamentos-Dialog').show()" />
+									
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<br/>
+			
+			<h:panelGroup id="chartPanel" layout="block" styleClass="ui-fluid">
+			<p:panelGrid columns="2" layout="grid" columnClasses="left,right" styleClass="panelgrid-noborder">
+				
+				<p:chart type="pie" model="#{relatorioBean.graficoAgendamentos}" responsive="true" id="grafico-agendamentos"
+							rendered="#{relatorioBean.graficoAgendamentos != null}" style="height:300px;" />
+				
+				
+				
+				<p:chart id="grafico-servicos" type="bar" model="#{relatorioBean.graficoServicos}" responsive="true"
+							rendered="#{relatorioBean.graficoServicos != null}" style="height:300px;" />
+							
+			</p:panelGrid>
+			</h:panelGroup>
+			
+			<br/>
+			
+			<p:panel header="Exportar Tabela" id="painel-exportar">
+				<h:commandLink disabled="#{relatorioBean.financeiros == null}" immediate="true">
+					<p:graphicImage library="mmw/images" name="pdf-icon.png" width="60" />
+					<pe:exporter type="pdf" target="table-relatorioServicos" fileName="Relatorio Financeiro - #{relatorioBean.today}" preProcessor="#{relatorioBean.preProcessPDF}" 
+									subTable="true" encoding="iso-8859-1" facetBackground="#008000" facetFontColor="#FFFFFF" facetFontSize="14" facetFontStyle="BOLD" cellFontSize="12" 
+									cellFontColor="#0000FF" cellFontStyle="NORMAL" orientation="Landscape"/>
+					</h:commandLink>
+			</p:panel>
+			
+			<p:dataTable id="table-relatorioServicos" value="#{relatorioBean.financeiros}" var="financ" reflow="true"
+				emptyMessage="Nenhum Relatorio ate o Momento." style="margin-top: 10px">
+				
+				<f:facet name="header">
+					Relatório Financeiro no Período de: <p:outputLabel  value="#{relatorioBean.datainicial}"><f:convertDateTime pattern="dd/MM/yyyy"/></p:outputLabel> 
+					Até <p:outputLabel  value="#{relatorioBean.datafinal}"><f:convertDateTime pattern="dd/MM/yyyy"/></p:outputLabel>
+				</f:facet>
+				
+				<p:columnGroup type="header">
+					<p:row>
+						<p:column rowspan="2" headerText="Cliente"/>
+						<p:column colspan="2" headerText="Pagamentos"/>
+					</p:row>
+					
+					<p:row>
+						<p:column headerText="Desconto"/>
+						<p:column headerText="Valor Total Recebido"/>
+					</p:row>
+				</p:columnGroup>
+				
+				<p:subTable value="#{financ.pagamentos}" var="pag">
+					<f:facet name="header">
+						<h:outputText value="#{financ.nomeCliente}"/>
+					</f:facet>
+					
+					<p:column style="text-align:center">
+						Data Abertura do Serviço - <h:outputText value="#{financ.dataAberturaServico}">
+							<f:convertDateTime pattern="dd/MM/yyyy"/>
+						</h:outputText>	
+					</p:column>
+					
+					<p:column style="text-align:center" >
+						<h:outputText value="#{pag.desconto}%"/>
+					</p:column>	
+					
+					<p:column style="text-align:center" >
+						<h:outputText value="#{pag.valorTotalRecebido}">
+							<f:convertNumber currencySymbol="R$" type="currency"/>
+						</h:outputText>	
+					</p:column>
+					
+					<p:columnGroup>
+						<p:row>
+							<p:column colspan="1" footerText="Total do Cliente: " style="text-align:right" />
+							<p:column footerText="#{financ.totalRecebidoCliente}"/>
+						</p:row>	
+					</p:columnGroup>
+				
+				</p:subTable>
+				
+				<f:facet name="footer">
+					Total Recebido no Período: R$<p:outputLabel  value="#{relatorioBean.total}" />
+				</f:facet>
+					
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->
+			
+			<!-- Dialog Buscar Relatorio Financeiro -->
+
+			<p:dialog widgetVar="financeiro-Dialog" header="Gerar Relatorio Fincanceiro" responsive="true" modal="true" id="financeiro-dialog">
+      			<p:panelGrid id="painelfinanceiro-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+      				 <p:defaultCommand target="botao-gerar" scope="financeiro-dialog" />
+					 <p:outputLabel/>
+					 
+					 <p:outputLabel for="escolha" value="Gerar Relatorio Por: " />
+					 <p:selectOneRadio id="escolha" value="#{relatorioBean.escolhaTipoRelatorio}" layout="responsive" columns="2" >
+					 	<f:selectItem itemLabel="Periodo" itemValue="Periodo"/>
+					 	<f:selectItem itemLabel="Periodo e Cliente" itemValue="Cliente"/>
+					 	<p:ajax update="cliente"/>
+					 </p:selectOneRadio>	
+			
+      				 <p:outputLabel for="datainicio" value="Data Inicial: " />
+            		 <p:calendar id="datainicio" value="#{relatorioBean.datainicial}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Inicial" />
+            		 
+            		 <p:outputLabel for="datafim" value="Data Final: " />
+            		 <p:calendar id="datafim" value="#{relatorioBean.datafinal}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Final" />
+            		 
+            		 <p:outputLabel for="cliente" value="Nome do Cliente: " />
+            		 <p:autoComplete id="cliente" value="#{relatorioBean.cliente}" var="cl" itemLabel="#{cl.nome}" disabled="#{relatorioBean.escolhaTipoRelatorio != 'Cliente'}"  
+            			itemValue="#{cl}" forceSelection="true" converter="clienteConverter" completeMethod="#{relatorioBean.CompletarNomeCliente}" />		
+            			
+            		 <p:outputLabel></p:outputLabel>				
+            		 <p:commandButton id="botao-gerar" value="Gerar Relatorio" actionListener="#{relatorioBean.Gerar}"
+            					update="painelfinanceiro-dialog table-relatorioServicos" process="financeiro-dialog" oncomplete="if (!args.validationFailed) PF('financeiro-Dialog').hide()" />	
+            	</p:panelGrid>	 
+            </p:dialog>			
+            
+            <!-- Dialog Grafico -->
+
+			<p:dialog widgetVar="grafico-Dialog" header="Novo Grafico" responsive="true" modal="true" id="grafico-dialog">
+      			<p:panelGrid id="painelgrafico-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-8, ui-grid-col-12">
+      				 <p:defaultCommand target="botao-grafico" scope="grafico-dialog" />
+					 <p:outputLabel/>	
+			
+      				 <p:outputLabel for="datainiciogr" value="Data Inicial: " />
+            		 <p:calendar id="datainiciogr" value="#{relatorioBean.datainicialGrafico}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Inicial" />
+            		 
+            		 <p:outputLabel for="datafimgr" value="Data Final: " />
+            		 <p:calendar id="datafimgr" value="#{relatorioBean.datafinalGrafico}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Final" />
+            			
+            		 <p:outputLabel></p:outputLabel>				
+            		 <p:commandButton id="botao-grafico" value="Gerar Novo Grafico" actionListener="#{relatorioBean.GerarNovoGrafico}"
+            					update="painelgrafico-dialog chartPanel" process="grafico-dialog" oncomplete="if (!args.validationFailed) PF('grafico-Dialog').hide()" />	
+            	</p:panelGrid>	 
+            </p:dialog>	
+            
+            <!-- Agendamentos -->   
+	
+	<p:dialog id="agendamentos-dialog" widgetVar="agendamentos-Dialog" header="Relatorio dos Agendamentos" styleClass="dialogRelatorios" responsive="true" resizable="false" modal="true">
+       <div class="ui-fluid">
+       		<p:panel header="Mudar Periodo" id="painel-filtros" toggleable="true" collapsed="true">
+				<p:panelGrid id="painelag-dialog" columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-8, ui-grid-col-12">
+      				 <p:defaultCommand target="botao-relatorioag" scope="agendamentos-dialog" />
+					 <p:outputLabel/>	
+			
+      				 <p:outputLabel for="datainicioag" value="Data Inicial: " />
+            		 <p:calendar id="datainicioag" value="#{relatorioBean.datainicialAg}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Inicial" />
+            		 
+            		 <p:outputLabel for="datafimag" value="Data Final: " />
+            		 <p:calendar id="datafimag" value="#{relatorioBean.datafinalAg}" mask="true" locale="pt" pattern="dd/MM/yyyy" 
+            		 				required="true" requiredMessage="É Necessário Informar Uma Data Final" />
+            			
+            		 <p:outputLabel></p:outputLabel>				
+            		 <p:commandButton id="botao-relatorioag" value="Buscar" actionListener="#{relatorioBean.BuscarAgendamentos}"
+            					update="painelag-dialog table-relatorioAgendamentos" process="agendamentos-dialog" />	
+            	</p:panelGrid>	 
+			</p:panel>
+			<br/>
+        
+        <p:dataTable id="table-relatorioAgendamentos" value="#{relatorioBean.agendamentos}" var="agenda" style="margin-top: 10px"
+					 emptyMessage="Não Possui Nenhum Agendamento ate o Momento" lazy="true" rows="5" paginator="true" reflow="true" scrollable="true" scrollHeight="200"
+					 paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}">
+					 
+			<f:facet name="{Exporters}">
+				<div style="float:right">
+				<h:commandLink disabled="#{relatorioBean.agendamentos == null}" title="Exportar Tabela em PDF" immediate="true">
+					<p:graphicImage library="mmw/images" name="pdf-icon.png" width="30" />
+					<pe:exporter type="pdf" target="table-relatorioAgendamentos" fileName="Relatorio Agendamentos - #{relatorioBean.today}" preProcessor="#{relatorioBean.preProcessPDFAg}" 
+								 encoding="iso-8859-1" facetBackground="#008000" facetFontColor="#FFFFFF" facetFontSize="14" facetFontStyle="BOLD" cellFontSize="12" 
+									cellFontColor="#0000FF" cellFontStyle="NORMAL" orientation="Landscape" />
+				</h:commandLink>
+				</div>	
+			</f:facet>		 
+					 
+			<f:facet name="header">
+				 <h:outputText value="#{relatorioBean.periodoagendamentos}" />
+			</f:facet>
+		
+		<p:column headerText="Cliente" style="text-align:center">
+			<h:outputText value="#{agenda.cliente.nome}" />
+		</p:column>
+		
+		<p:column headerText="Motivo" style="text-align:center">
+			<h:outputText value="#{agenda.motivo}" />
+		</p:column>
+		
+		<p:column headerText="Data Agendada" style="text-align:center">
+			<h:outputText value="#{agenda.dataAgendada}" >
+				<f:convertDateTime pattern="dd/MM/yyyy" />
+			</h:outputText>	
+		</p:column>
+		
+		<p:column headerText="Status" style="text-align:center">
+			<h:outputText value="Agendado" rendered="#{agenda.finalizado == false and agenda.cancelado == false}" style="color:blue" styleClass="outputLabel"/>
+            <h:outputText value="Concluido" rendered="#{agenda.finalizado == true and agenda.cancelado == false}" style="color:green" styleClass="outputLabel"/>
+            <h:outputText value="Cancelado" rendered="#{agenda.finalizado == false and agenda.cancelado == true}" style="color:red" styleClass="outputLabel"/>
+		</p:column>
+		
+		<p:column headerText="Motivo Cancelado" style="text-align:center">
+			<h:outputText value="#{agenda.motivoCancelado}" />
+		</p:column>
+		
+		<p:column headerText="Data de Criação" style="text-align:center">
+             <h:outputText value="#{agenda.dataCriada}" >
+             	<f:convertDateTime pattern="dd/MM/yyyy" />
+             </h:outputText>	
+		</p:column>	
+		
+		<p:column headerText="Funcionario que Criou" style="text-align:center">
+			<h:outputText value="#{agenda.funcionario.nome}" />
+		</p:column>
+		
+		<p:column headerText="Relatorio" style="text-align:center" exportable="false">
+			<p:commandButton update=":relatorios-frm:resumo-dialog" oncomplete="PF('resumo-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this" >
+				<f:setPropertyActionListener target="#{relatorioBean.agendamentoSelecionado}" value="#{agenda}"/>
+			</p:commandButton>	
+		</p:column>
+		
+		<f:facet name="footer">
+			Total de Agendamentos no Período: <p:outputLabel value="#{relatorioBean.totalagendamentos}"/>
+		</f:facet>
+		
+	</p:dataTable>	
+	</div>
+	</p:dialog>
+	
+	 <!-- Dialog Relatorio Agendamento -->
+        
+        <p:dialog id="resumo-dialog" widgetVar="resumo-Dialog" header="Relatorio" responsive="true" modal="true" showEffect="blind" hideEffect="explode">
+        				
+        		<h:panelGroup id="relPanel" layout="block" styleClass="ui-fluid">
+						
+        	<p:outputPanel id="relatorio-detalhes" style="text-align:center;">
+            <p:panelGrid columns="1" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-12">
+           
+                <f:facet name="header">
+                    Relatorio do Agendamento do Dia: <p:outputLabel value="#{relatorioBean.agendamentoSelecionado.dataAgendada}" ><f:convertDateTime pattern="dd/MM/yyyy"/></p:outputLabel> 
+                </f:facet>
+                
+ 				<h:outputText value="Este Agendamento Não Possui um Relatório! Verifique o Serviço ao qual este Agendamento Pertence!" style="color:red;font-size:20px" styleClass="outputLabel" 
+ 										rendered="#{empty relatorioBean.agendamentoSelecionado.resumo}" />
+                <h:outputText value="#{relatorioBean.agendamentoSelecionado.resumo}" style="color:green;font-size:16px" styleClass="outputLabel" />
+                
+            </p:panelGrid>
+          </p:outputPanel>
+        </h:panelGroup>
+      </p:dialog>  	  		 
+		
+</h:form>
+</ui:define>
+</ui:composition>			

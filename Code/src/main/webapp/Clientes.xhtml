@@ -1,0 +1,359 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/Layout.xhtml">
+	
+	<ui:define name="content">
+	
+	<f:metadata>
+		<f:viewAction action="#{clienteBean.Inicializar}"></f:viewAction>
+	</f:metadata>
+	
+		<h1 class="aw-page-title">Clientes</h1>
+		
+		<h:form id="cliente-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+					 <p:menuButton  value="Atualizar">
+ 					 	<p:menuitem value="Cliente Fisico" icon="ui-icon-refresh" update="clientef-dialog" action="#{clienteBean.Mostrar}"
+            				 process="@this" disabled="#{clienteBean.clienteFisicoSelecionado == null}" oncomplete="PF('clientef-Dialog').show()"/>
+            		    
+            		    <p:menuitem value="Cliente Juridico" icon="ui-icon-refresh" update="clientej-dialog" process="@this" action="#{clienteBean.Mostrar}"
+            		    				disabled="#{clienteBean.clienteJuridicoSelecionado == null}" oncomplete="PF('clientej-Dialog').show()"/>
+            		  </p:menuButton>  
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<!-- datatable cliente fisico -->
+			
+			<p:dataTable id="table-clientesf" value="#{clienteBean.clientesf}" var="cliente" reflow="true"
+				emptyMessage="Nenhum Cliente Fisico Cadastrado ate o Momento." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" lazy="true"
+				selection="#{clienteBean.clienteFisicoSelecionado}" selectionMode="single" rowKey="#{cliente.id}">
+					 
+			<p:ajax event="rowSelect" update=":cliente-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":cliente-frm:toolbar"/>
+				
+				<f:facet name="header">
+					Clientes Fisicos
+				</f:facet>
+				
+				<p:column headerText="Nome" style="text-align:center" filterBy="#{cliente.nome}">
+					<h:outputText value="#{cliente.nome}"/>
+				</p:column>
+				
+				<p:column headerText="Data de Nascimento" style="text-align:center">
+					<h:outputText value="#{cliente.datanasc}">
+						<f:convertDateTime pattern="dd/MM/yyyy"/>
+					</h:outputText>	
+				</p:column>
+				
+				<p:column headerText="CPF" style="text-align:center" filterBy="#{cliente.cpf}">
+					<h:outputText value="#{cliente.cpf}"/>
+				</p:column>
+				
+				<p:column headerText="E-mail" style="text-align:center">
+					<h:outputText value="#{cliente.email}"/>
+				</p:column>
+				
+				<p:column headerText="Telefones" style="text-align:center">
+					<p:commandButton update=":cliente-frm:telefone-dialog" oncomplete="PF('telefone-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{clienteBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+				
+				<p:column headerText="Endereço" style="text-align:center">
+					<p:commandButton update=":cliente-frm:endereco-dialog" oncomplete="PF('endereco-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{clienteBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+			
+			</p:dataTable>
+			
+			<!-- datatable cliente juridico -->
+			
+			<p:dataTable id="table-clientesj" value="#{clienteBean.clientesj}" var="cliente" reflow="true"
+				emptyMessage="Nenhum Cliente Juridico Cadastrado ate o Momento." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" lazy="true"
+				selection="#{clienteBean.clienteJuridicoSelecionado}" selectionMode="single" rowKey="#{cliente.id}">
+					 
+			<p:ajax event="rowSelect" update=":cliente-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":cliente-frm:toolbar"/>
+				
+				<f:facet name="header">
+					Clientes Juridicos
+				</f:facet>
+				
+				<p:column headerText="Nome" style="text-align:center" filterBy="#{cliente.nome}">
+					<h:outputText value="#{cliente.nome}"/>
+				</p:column>
+				
+				<p:column headerText="CNPJ" style="text-align:center" filterBy="#{cliente.cnpj}">
+					<h:outputText value="#{cliente.cnpj}"/>
+				</p:column>
+				
+				<p:column headerText="E-mail" style="text-align:center">
+					<h:outputText value="#{cliente.email}"/>
+				</p:column>
+				
+				<p:column headerText="Telefones" style="text-align:center">
+					<p:commandButton update=":cliente-frm:telefone-dialog" oncomplete="PF('telefone-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{clienteBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+				
+				<p:column headerText="Endereço" style="text-align:center">
+					<p:commandButton update=":cliente-frm:endereco-dialog" oncomplete="PF('endereco-Dialog').show()" icon="ui-icon-search"
+								title="Exibir" process="@this">
+						<f:setPropertyActionListener target="#{clienteBean.clienteSelecionado}" value="#{cliente}"/>
+					</p:commandButton>	
+				</p:column>
+			
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<p:dialog widgetVar="clientef-Dialog" id="clientef-dialog" header="Atualizar Cliente"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				<p:wizard>
+				<p:tab title="Dados Pessoais">
+				
+				<h:panelGroup id="clientefPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+			
+						<p:outputLabel for="nomef" value="Nome Completo: " />
+            			<p:inputText id="nomef" value="#{clienteBean.clienteFisicoSelecionado.nome}"/>
+            			
+            			<p:outputLabel for="datanasc" value="Data de Nascimento: " />
+            			<p:calendar id="datanasc" value="#{clienteBean.clienteFisicoSelecionado.datanasc}" pattern="dd/MM/yyyy" 
+										mask="true" locale="pt" />
+            			
+            			<p:outputLabel for="cpf" value="CPF: " />
+            			<p:inputMask id="cpf" value="#{clienteBean.clienteFisicoSelecionado.cpf}" mask="999.999.999-99" />
+            			
+            			<p:outputLabel for="emailf" value="E-mail:" />
+            			<p:inputText id="emailf" value="#{clienteBean.clienteFisicoSelecionado.email}"/>
+            			
+            			<p:outputLabel for="telf" value="Telefone Fixo:" />
+            			<p:inputMask id="telf" value="#{clienteBean.clienteFisicoSelecionado.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="celf" value="Celular: " />
+            			<p:inputMask id="celf" value="#{clienteBean.clienteFisicoSelecionado.cel}" mask="(99) 99999-9999" />
+            			
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				</p:tab>
+				
+				<p:tab title="Endereço">
+					<h:panelGroup id="endfPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-atualizarClientef" scope="clientef-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="ruaf" value="Rua: " />
+						<p:inputText id="ruaf" value="#{clienteBean.clienteFisicoSelecionado.endereco.rua}" />	
+						
+						<p:outputLabel for="numerof" value="Número: " />
+						<p:inputText id="numerof" value="#{clienteBean.clienteFisicoSelecionado.endereco.numero}" />
+						
+						<p:outputLabel for="complementof" value="Complemento: " />
+						<p:inputText id="complementof" value="#{clienteBean.clienteFisicoSelecionado.endereco.complemento}" />
+						
+						<p:outputLabel for="bairrof" value="Bairro: " />
+						<p:inputText id="bairrof" value="#{clienteBean.clienteFisicoSelecionado.endereco.bairro}" />
+						
+						<p:outputLabel for="cepf" value="CEP: " />
+						<p:inputMask id="cepf" value="#{clienteBean.clienteFisicoSelecionado.endereco.cep}" mask="99999-999" />
+						
+						<p:outputLabel for="cidadef" value="Cidade: " />
+						<p:inputText id="cidadef" value="#{clienteBean.clienteFisicoSelecionado.endereco.cidade}" />
+						
+						<p:outputLabel for="uff" value="UF: " />
+            			<p:selectOneMenu id="uff" value="#{clienteBean.clienteFisicoSelecionado.endereco.uf}">
+            				<f:selectItem itemLabel="Escolha a UF" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{clienteBean.ufs}" />	
+            			</p:selectOneMenu>
+            			
+            			<p:outputLabel for="paisf" value="País: " />
+            			<p:selectOneMenu id="paisf" value="#{clienteBean.clienteFisicoSelecionado.endereco.pais}" editable="true">
+            				<f:selectItem itemLabel="Escolha o País" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{clienteBean.paises}" />	
+            			</p:selectOneMenu>
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-atualizarClientef" value="Atualizar" actionListener="#{clienteBean.AtualizarClienteFisico}" 
+										process="clientef-dialog" update="clientef-dialog table-clientesf toolbar" oncomplete="if (!args.validationFailed) PF('clientef-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:tab>
+			</p:wizard>	
+			</p:dialog>	
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<p:dialog widgetVar="clientej-Dialog" id="clientej-dialog" header="Atualizar Cliente"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				<p:wizard>
+				<p:tab title="Dados Pessoais">
+				
+				<h:panelGroup id="clientePanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+			
+						<p:outputLabel for="nome" value="Nome Completo: " />
+            			<p:inputText id="nome" value="#{clienteBean.clienteJuridicoSelecionado.nome}"/>
+            			
+            			<p:outputLabel for="cnpj" value="CNPJ: " />
+            			<p:inputMask id="cnpj" value="#{clienteBean.clienteJuridicoSelecionado.cnpj}" mask="99.999.999/9999-99" />
+            			
+            			<p:outputLabel for="email" value="E-mail:" />
+            			<p:inputText id="email" value="#{clienteBean.clienteJuridicoSelecionado.email}"/>
+            			
+            			<p:outputLabel for="telj" value="Telefone Fixo: " />
+            			<p:inputMask id="telj" value="#{clienteBean.clienteJuridicoSelecionado.tel}" mask="(99) 9999-9999" />
+            		
+            			<p:outputLabel for="celj" value="Celular: " />
+            			<p:inputMask id="celj" value="#{clienteBean.clienteJuridicoSelecionado.cel}" mask="(99) 99999-9999" />
+            			
+						</p:panelGrid>
+					
+				</h:panelGroup>
+				</p:tab>
+				
+				<p:tab title="Endereço">
+					<h:panelGroup id="endPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            			<p:defaultCommand target="botao-atualizarClientej" scope="clientej-dialog" />
+						<p:outputLabel/>
+						
+						<p:outputLabel for="rua" value="Rua: " />
+						<p:inputText id="rua" value="#{clienteBean.clienteJuridicoSelecionado.endereco.rua}" />	
+						
+						<p:outputLabel for="numero" value="Número: " />
+						<p:inputText id="numero" value="#{clienteBean.clienteJuridicoSelecionado.endereco.numero}" />
+						
+						<p:outputLabel for="complemento" value="Complemento: " />
+						<p:inputText id="complemento" value="#{clienteBean.clienteJuridicoSelecionado.endereco.complemento}" />
+						
+						<p:outputLabel for="bairro" value="Bairro: " />
+						<p:inputText id="bairro" value="#{clienteBean.clienteJuridicoSelecionado.endereco.bairro}" />
+						
+						<p:outputLabel for="cep" value="CEP: " />
+						<p:inputMask id="cep" value="#{clienteBean.clienteJuridicoSelecionado.endereco.cep}" mask="99999-999" />
+						
+						<p:outputLabel for="cidade" value="Cidade: " />
+						<p:inputText id="cidade" value="#{clienteBean.clienteJuridicoSelecionado.endereco.cidade}" />
+						
+						<p:outputLabel for="uf" value="UF: " />
+            			<p:selectOneMenu id="uf" value="#{clienteBean.clienteJuridicoSelecionado.endereco.uf}">
+            				<f:selectItem itemLabel="Escolha a UF" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{clienteBean.ufs}" />	
+            			</p:selectOneMenu>
+            			
+            			<p:outputLabel for="pais" value="País: " />
+            			<p:selectOneMenu id="pais" value="#{clienteBean.clienteJuridicoSelecionado.endereco.pais}" editable="true">
+            				<f:selectItem itemLabel="Escolha o País" itemValue="" noSelectionOption="true" />
+            				<f:selectItems value="#{clienteBean.paises}" />	
+            			</p:selectOneMenu>
+						
+						<p:outputLabel/>
+						<p:commandButton id="botao-atualizarClientej" value="Atualizar" actionListener="#{clienteBean.AtualizarClienteJuridico}" 
+										process="clientej-dialog" update="clientej-dialog table-clientesj toolbar" oncomplete="if (!args.validationFailed) PF('clientej-Dialog').hide()"/>
+						
+					</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:tab>
+			</p:wizard>	
+			</p:dialog>	
+			
+			<!-- Dialog Endereços -->
+        
+        <p:dialog  widgetVar="endereco-Dialog" header="Endereço" modal="true" id="endereco-dialog" 
+        				showEffect="blind" hideEffect="explode" responsive="true">
+        		<h:panelGroup id="endPanel2" layout="block" styleClass="ui-fluid">
+						
+        	<p:outputPanel id="endereco-detalhes" style="text-align:center;">
+            <p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+           
+                <f:facet name="header">
+                    <p:outputLabel value="Endereço do Cliente: #{clienteBean.clienteSelecionado.nome}" /> 
+                </f:facet>
+ 
+                <h:outputText value="Rua: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.rua}" />
+                
+                <h:outputText value="Número: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.numero}" />
+                
+                <h:outputText value="Complemento: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.complemento}" />
+                
+                <h:outputText value="Bairro: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.bairro}" />
+                
+                <h:outputText value="Cidade: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.cidade}" />
+                
+                <h:outputText value="CEP: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.cep}" />
+                
+                <h:outputText value="UF: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.uf}" />
+                
+                <h:outputText value="País: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.endereco.pais}" />
+
+            </p:panelGrid>
+          </p:outputPanel>
+        </h:panelGroup>
+      </p:dialog>  	
+      
+      <!-- Dialog telefones -->
+        
+        <p:dialog id="telefone-dialog" widgetVar="telefone-Dialog" header="Telefones" responsive="true" modal="true" showEffect="blind" hideEffect="explode">
+        				
+        		<h:panelGroup id="telPanel" layout="block" styleClass="ui-fluid">
+						
+        	<p:outputPanel id="telefone-detalhes" style="text-align:center;">
+            <p:panelGrid columns="2" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">
+           
+                <f:facet name="header">
+                    <p:outputLabel value="Telefones do Cliente: #{clienteBean.clienteSelecionado.nome}" /> 
+                </f:facet>
+ 
+                <h:outputText value="Telefone Fixo: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.tel}" />
+                
+                <h:outputText value="Telefone Celular: " />
+                <h:outputText value="#{clienteBean.clienteSelecionado.cel}" />
+                
+            </p:panelGrid>
+          </p:outputPanel>
+        </h:panelGroup>
+      </p:dialog>  	  		 
+			
+		</h:form>
+	</ui:define>
+	
+</ui:composition>

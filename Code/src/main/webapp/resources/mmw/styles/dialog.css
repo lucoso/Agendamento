@@ -1,0 +1,60 @@
+.dialogRelatorios {
+	width: 600px !important;
+}
+
+.dialogPagamentos {
+	width: 800px !important;	
+}
+
+.dialogParcelas {
+	width: 800px !important;	
+}
+
+.dialogAgendamentos {
+	width: 600px !important;	
+}
+
+.dialogRelatorios {
+	width: 900px !important;
+}
+
+.dialogNegado {
+	width: 500px !important;	
+}
+
+@media screen and (max-width: 761px){
+	.dialogRelatorios {width: 761px !important;}
+	.dialogPagamentos {width: 761px !important; height: 320px !important;}
+	.dialogParcelas {width: 761px !important; height: 320px !important;}
+	.dialogAgendamentos {width: 761px !important;}
+	.dialogRelatorios {width: 761px !important; height: 320px !important;}	
+	.dialogNegado {width: 761px !important;}
+}
+
+@media screen and (max-width: 760px){
+	.dialogRelatorios {width: 760px !important;}
+	.dialogPagamentos {width: 760px !important; height: 320px !important;}
+	.dialogParcelas {width: 760px !important; height: 320px !important;}
+	.dialogAgendamentos {width: 760px !important;}
+	.dialogRelatorios {width: 760px !important; height: 320px !important;}
+	.dialogNegado {width: 760px !important;}
+}
+
+@media screen and (max-width: 480px){
+	.dialogRelatorios {width: 480px !important;}
+	.dialogPagamentos {width: 480px !important; height: 320px !important;}
+	.dialogParcelas {width: 480px !important; height: 320px !important;}
+	.dialogAgendamentos {width: 480px !important;}
+	.dialogRelatorios {width: 480px !important; height: 320px !important;}
+	.dialogNegado {width: 480px !important;}
+}
+
+@media screen and (max-width: 360px){
+	.dialogRelatorios {width: 360px !important;}
+	.dialogPagamentos {width: 360px !important;}
+	.dialogParcelas {width: 360px !important;}
+	.dialogAgendamentos {width: 360px !important;}
+	.dialogRelatorios {width: 360px !important; height: 120px !important;}
+	.dialogNegado {width: 360px !important;}
+}
+

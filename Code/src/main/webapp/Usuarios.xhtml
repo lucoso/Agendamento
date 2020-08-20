@@ -1,0 +1,222 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/templates/LayoutAdmin.xhtml">
+	
+	<ui:define name="content">
+	
+		<h1 class="aw-page-title">Area do Administrador</h1>
+		<h2>Usuarios do Sistema</h2>
+		
+		<h:form id="usuario-frm">
+			
+			<p:messages autoUpdate="true" />
+			
+			<p:toolbar id="toolbar">
+				<p:toolbarGroup>
+				
+					<p:commandButton value="Novo Usuario" action="#{usuarioAdminBean.UsuarioEmEdicao}"
+						process="@this" icon="ui-icon-plusthick" update="usuario-dialog"
+						oncomplete="PF('usuario-Dialog').show()"  >
+						<p:resetInput target="usuario-dialog" />
+					</p:commandButton>
+					
+					<span class="ui-separator">
+						<span class="ui-icon ui-icon-grip-dotted-vertical"/>
+					</span>
+					
+					<p:commandButton value="Atualizar Usuario" process="@this" icon="fa fa-fw fa-edit" 
+										update="usuarioatual-dialog" disabled="#{usuarioAdminBean.usuarioSelecionado == null}"
+										oncomplete="PF('usuarioatual-Dialog').show()"  />
+					
+					<span class="ui-separator"/>
+					
+					<p:commandButton title="excluir" icon="ui-icon-trash" disabled="#{usuarioAdminBean.usuarioSelecionado == null}"
+								actionListener="#{usuarioAdminBean.Remover}" update="table-usuarios" process="@this">
+				<p:confirm header="Confirmação" message="Tem Certeza que Deseja Excluir o Usuario?" icon="ui-icon-alert" />
+    				</p:commandButton>					
+				
+				</p:toolbarGroup>
+			</p:toolbar>
+			
+			<br/>
+			
+			<div class="ui-fluid">
+			<p:panel header="Filtro para Buscar os Usuarios" id="panel-filtros" >
+ 			<p:panelGrid id="painel-filtros" columns="2" layout="grid" styleClass="panelgrid-noborder" columnClasses="ui-grid-col-2, ui-grid-col-4" >
+ 				<p:defaultCommand target="botao-filtrar" scope="panel-filtros" />
+				<p:outputLabel/>
+			
+				<p:outputLabel for="empresaclientefiltro" value="Empresa Cliente: " />
+            	<p:autoComplete id="empresaclientefiltro" value="#{usuarioAdminBean.empresaCliente}" var="empresa" itemLabel="#{empresa.nome}" 
+            			itemValue="#{empresa}" forceSelection="true" converter="empresaConverter"
+            			completeMethod="#{usuarioAdminBean.CompletarNomeEmpresa}" />
+            	
+            	<p:outputLabel />
+            	<p:commandButton id="botao-filtrar" value="Filtrar" action="#{usuarioAdminBean.Buscar}" update="panel-filtros table-usuarios" process="panel-filtros" />	
+ 			</p:panelGrid>
+ 		</p:panel>
+ 		</div>		
+			
+			
+			<p:dataTable id="table-usuarios" value="#{usuarioAdminBean.usuarios}" var="user" reflow="true"
+				emptyMessage="Nenhum Usuario Cadastrado ate o Momento." style="margin-top: 10px"
+				rows="10" paginator="true" paginatorPosition="bottom" 
+				selection="#{usuarioAdminBean.usuarioSelecionado}" selectionMode="single" rowKey="#{user.id}">
+					 
+			<p:ajax event="rowSelect" update=":usuario-frm:toolbar"/>
+			<p:ajax event="rowUnselect" update=":usuario-frm:toolbar"/>
+				
+			<p:column headerText="ID" style="text-align:center">
+				<h:outputText value="#{user.id}"/>
+			</p:column>
+		
+			<p:column headerText="Nome do Usuario" style="text-align:center" filterBy="#{user.login}" filterMatchMode="contains">
+				<h:outputText value="#{user.login}"/>
+			</p:column>
+			
+			<p:column headerText="Senha" style="text-align:center" >
+				<h:outputText value="#{user.senha}"/>
+			</p:column>
+		
+			<p:column headerText="Funcionario" style="text-align:center" filterBy="#{user.funcionario.nome}" filterMatchMode="contains">
+				<h:outputText value="#{user.funcionario.nome}"/>
+			</p:column>
+		
+			<p:column headerText="Papel" style="text-align:center">
+				<h:outputText value="#{user.papel}"/>
+			</p:column>
+		
+			<p:column headerText="Status" style="text-align:center">
+				<h:outputText value="Ativo" rendered="#{user.ativo == true}"/>
+				<h:outputText value="Inativo" rendered="#{user.ativo == false}"/>
+			</p:column>
+			
+			</p:dataTable>
+			
+			<!-- Dialogs da Pagina -->	
+	
+	<!-- Dialog usuario -->
+	
+	<p:dialog widgetVar="usuario-Dialog" id="usuario-dialog" header="Dados do Usuario"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="usuarioPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="3" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            
+						<p:defaultCommand target="botao-criar" scope="usuario-dialog" />
+						<p:outputLabel/>
+						<p:outputLabel/>
+					
+					<p:outputLabel for="empresacliente" value="Empresa Cliente: " />
+            		<p:autoComplete id="empresacliente" value="#{usuarioAdminBean.empresaCliente}" var="empresa" itemLabel="#{empresa.nome}" 
+            			itemValue="#{empresa}" forceSelection="true" converter="empresaConverter"
+            			completeMethod="#{usuarioAdminBean.CompletarNomeEmpresa}" >
+            			<p:ajax event="itemSelect" update="novofuncionario" />
+            		</p:autoComplete>		
+            		<p:outputLabel/>
+            					
+        			<p:outputLabel for="novofuncionario" value="Funcionario: " />
+            		<p:autoComplete id="novofuncionario" value="#{usuarioAdminBean.user.funcionario}" var="funcionario" itemLabel="#{funcionario.nome}" 
+            			itemValue="#{funcionario}" forceSelection="true" converter="funcionarioConverter"
+            			completeMethod="#{usuarioAdminBean.CompletarNomeFuncionario}" />	
+            		<p:outputLabel/>
+            
+        			<p:outputLabel for="novonome" value="E-mail do Usuario: " />
+         			<p:inputText id="novonome" value="#{usuarioAdminBean.user.login}"/>
+            		<p:outputLabel/> 
+            
+            		<p:outputLabel for="novopapel" value="Papel: " />
+            		<p:selectOneMenu id="novopapel" value="#{usuarioAdminBean.user.papel}" style="width:125px">
+						<f:selectItem itemLabel="Selecione" itemValue="" />
+						<f:selectItem itemLabel="Administrador" itemValue="Administrador" />
+						<f:selectItem itemLabel="Gerente" itemValue="Gerente" />
+						<f:selectItem itemLabel="Usuario" itemValue="Usuario" />            	
+            		</p:selectOneMenu>
+            		<p:outputLabel/>
+            
+            		<p:outputLabel for="novoativo" value="Ativo? " />
+            		<p:selectOneRadio id="novoativo" value="#{usuarioAdminBean.user.ativo}" style="width:125px">
+						<f:selectItem itemLabel="Sim" itemValue="true" />
+						<f:selectItem itemLabel="Não" itemValue="false" />
+					</p:selectOneRadio>	
+            		<p:outputLabel/>
+            
+            		<p:outputLabel for="novasenha" value="Senha: " />
+            		<p:password id="novasenha" value="#{usuarioAdminBean.user.senha}" match="novasenha2" title="A Senha deve conter no minimo 6 e no maximo 12 caracteres"/>
+            		<p:tooltip id="tooltipsenha" for="novasenha" showEvent="focus" hideEvent="blur" />
+            
+            		<p:outputLabel for="novasenha2" value="Repita a Senha:" />
+            		<p:password id="novasenha2" value="#{usuarioAdminBean.user.senha}"/>
+            		<p:outputLabel/>
+             
+            <p:outputLabel/>
+         	<p:commandButton id="botao-criar" value="Salvar" action="#{usuarioAdminBean.Salvar}" process="usuario-dialog"
+            				 		 oncomplete="if (!args.validationFailed) PF('usuario-Dialog').hide()"/>
+            <p:outputLabel/>
+					
+				</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:dialog>
+			
+			<!-- Dialog atualizar usuario -->
+	
+	<p:dialog widgetVar="usuarioatual-Dialog" id="usuarioatual-dialog" header="Atualizar Dados do Usuario"
+				resizable="false" style="min-width: 300px" responsive="true" modal="true">
+				
+				<h:panelGroup id="usuarioatualPanel" layout="block" styleClass="ui-fluid">
+					
+					<p:panelGrid columns="3" layout="grid" styleClass="panelgrid-noborder"
+						columnClasses="ui-grid-col-4, ui-grid-col-8">			
+            
+						<p:defaultCommand target="botao-atualizar" scope="usuarioatual-dialog" />
+						<p:outputLabel/>
+						<p:outputLabel/>
+            
+        			<p:outputLabel for="nomeatual" value="E-mail do Usuario: " />
+         			<p:inputText id="nomeatual" value="#{usuarioAdminBean.usuarioSelecionado.login}"/>
+            		<p:outputLabel/> 
+            
+            		<p:outputLabel for="papelatual" value="Papel: " />
+            		<p:selectOneMenu id="papelatual" value="#{usuarioAdminBean.usuarioSelecionado.papel}" style="width:125px">
+						<f:selectItem itemLabel="Selecione" itemValue="" />
+						<f:selectItem itemLabel="Administrador" itemValue="Administrador" />
+						<f:selectItem itemLabel="Gerente" itemValue="Gerente" />
+						<f:selectItem itemLabel="Usuario" itemValue="Usuario" />            	
+            		</p:selectOneMenu>
+            		<p:outputLabel/>
+            
+            		<p:outputLabel for="ativoatual" value="Ativo? " />
+            		<p:selectOneRadio id="ativoatual" value="#{usuarioAdminBean.usuarioSelecionado.ativo}" style="width:125px">
+						<f:selectItem itemLabel="Sim" itemValue="true" />
+						<f:selectItem itemLabel="Não" itemValue="false" />
+					</p:selectOneRadio>	
+            		<p:outputLabel/>
+            
+            		<p:outputLabel for="novasenhaatual" value="Senha: " />
+            		<p:password id="novasenhaatual" value="#{usuarioAdminBean.usuarioSelecionado.senha}" match="novasenhaatual2" title="A Senha deve conter no minimo 6 e no maximo 12 caracteres"/>
+            		<p:tooltip id="tooltipsenhaatual" for="novasenhaatual" showEvent="focus" hideEvent="blur" />
+            
+            		<p:outputLabel for="novasenhaatual2" value="Repita a Senha:" />
+            		<p:password id="novasenhaatual2" value="#{usuarioAdminBean.usuarioSelecionado.senha}"/>
+            		<p:outputLabel/>
+             
+            <p:outputLabel/>
+         	<p:commandButton id="botao-atualizar" value="Atualizar" action="#{usuarioAdminBean.Atualizar}" process="usuarioatual-dialog"
+            				 		 oncomplete="if (!args.validationFailed) PF('usuarioatual-Dialog').hide()"/>
+            <p:outputLabel/>
+					
+				</p:panelGrid>
+					
+				</h:panelGroup>
+			</p:dialog>
+			
+		</h:form>
+	</ui:define>
+	
+</ui:composition>
